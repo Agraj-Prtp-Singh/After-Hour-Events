@@ -2,8 +2,8 @@ import { Users, QrCode, CircleCheck, Bot } from "lucide-react";
 
 export default function Footer() {
   return (
-    <div className="bg-[#0b0220] text-gray-300 overflow-x-auto sm:overflow-visible">
-      <div className="flex justify-between items-center px-6 py-4 text-xs min-w-[800px] sm:min-w-0">
+    <div className="bg-[#0b0220] text-gray-300 max-[950px]:overflow-x-auto overflow-visible">
+      <div className="flex justify-between items-center px-6 py-4 min-w-[950px]">
         {/* Left */}
         <span className="text-sm whitespace-nowrap">
           ©2026 EMS Collaborative Development
