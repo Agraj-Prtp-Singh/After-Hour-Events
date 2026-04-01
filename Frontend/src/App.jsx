@@ -7,9 +7,9 @@ function App() {
   return (
     <div className="bg-[#F8FAFC] min-h-screen text-black overflow-hidden">
       <Routes>
-        <Route path="/" element={<Register />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/otp" element={<OTPPage />} />
-        <Route path="/landingPage" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
       </Routes>
     </div>
   );

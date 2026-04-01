@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { registerUser } from "../api/auth";
+import { verifyOtp } from "../api/auth";
 
 export default function RegisterCard() {
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
   const [phone, setPhone] = useState("+977 ");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -23,7 +29,8 @@ export default function RegisterCard() {
     }
   }, [password, confirmPassword]);
 
-  const handleSubmit = (e) => {
+  // handling submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Remove the +977 prefix and any spaces
@@ -31,17 +38,40 @@ export default function RegisterCard() {
 
     if (password.length < 6 || password.length > 12) {
       setError("Password must be 6–12 characters long!");
-    } else if (password !== confirmPassword) {
-      setError("Passwords do not match!");
-    } else if (phoneDigits.length !== 10) {
-      setError("Phone number must be 10 digits long!");
-    } else {
-      setError("");
-      // alert("Account created successfully!");
-      // proceed with form submission
+      return;
     }
 
-    navigate("/otp");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    if (phoneDigits.length !== 10) {
+      setError("Phone number must be 10 digits long!");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await registerUser({
+        fullName,
+        role,
+        email,
+        password,
+        phone: phoneDigits,
+      });
+
+      console.log("Success:", response);
+
+      navigate("/otp", {
+        state: { email: email },
+      }); // move ONLY on success
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Phone input change handler
@@ -69,6 +99,8 @@ export default function RegisterCard() {
             <input
               type="text"
               placeholder="Full Name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               name="full-name"
               className="input"
               required
@@ -80,8 +112,8 @@ export default function RegisterCard() {
             <input
               type="email"
               placeholder="Email Address"
-              name="email-address"
-              className="input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -161,6 +193,8 @@ export default function RegisterCard() {
             <select
               id="role"
               name="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
               className="input"
               required
               defaultValue=""
@@ -193,11 +227,11 @@ export default function RegisterCard() {
           {error && <p className="text-red-500 mt-1">{error}</p>}
 
           <button
-            // onSubmit={handleSubmit}
             type="submit"
+            disabled={loading}
             className="btn w-full mt-4 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 cursor-pointer"
           >
-            Create Account
+            {loading ? "Creating..." : "Create Account"}
           </button>
 
           {/* Already have an account */}

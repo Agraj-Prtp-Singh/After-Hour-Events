@@ -1,8 +1,24 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { verifyOtp } from "../api/auth";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function OTPCard() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputsRef = useRef([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const location = useLocation();
+  const email = location.state?.email || "your email";
+
+  // whenever the OTP changes checks all boxes and verify automatically
+  useEffect(() => {
+    if (otp.every((digit) => digit !== "")) {
+      handleVerify();
+    }
+  }, [otp]);
 
   const handleChange = (value, index) => {
     if (!/^[0-9]?$/.test(value)) return;
@@ -23,16 +39,38 @@ export default function OTPCard() {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const code = otp.join("");
-    console.log("OTP:", code);
 
     if (code.length < 6) {
-      alert("Enter full OTP");
+      setError("Enter full OTP");
       return;
     }
 
-    // TODO: send to backend
+    setLoading(true);
+
+    try {
+      const res = await verifyOtp(code);
+      console.log(res);
+
+      // 👉 success flow
+      alert("OTP Verified!!!");
+      // navigate("/dashboard") later
+    } catch (err) {
+      setError(err.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = () => {
+    console.log("Resending OTP...");
+
+    // reset OTP
+    setOtp(["", "", "", "", "", ""]);
+    inputsRef.current[0].focus();
+
+    alert("OTP sent again (mock)");
   };
 
   return (
@@ -40,8 +78,7 @@ export default function OTPCard() {
       <h2 className="text-2xl font-bold mb-2">OTP Verification</h2>
 
       <p className="text-sm text-gray-500 mb-6">
-        We sent a 6 digit code to{" "}
-        <span className="text-blue-500">demo@gmail.com</span>
+        We sent a 6 digit code to <span className="text-blue-500">{email}</span>
       </p>
 
       <div className="flex justify-center gap-3 mb-6">
@@ -61,16 +98,24 @@ export default function OTPCard() {
 
       <button
         onClick={handleVerify}
+        disabled={loading}
         className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
       >
-        Verify code
+        {loading ? "Verifying..." : "Verify code"}{" "}
       </button>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
 
-      <button className="w-full mt-3 bg-gray-200 py-2 rounded-lg text-sm hover:bg-gray-300">
+      <button
+        className="w-full mt-3 bg-gray-200 py-2 rounded-lg text-sm hover:bg-gray-300"
+        onClick={handleResend}
+      >
         Didn’t receive the OTP? Resend code
       </button>
 
-      <p className="mt-4 text-sm text-gray-500 cursor-pointer hover:underline">
+      <p
+        className="mt-4 text-sm text-gray-500 cursor-pointer hover:underline"
+        onClick={() => navigate("/register")}
+      >
         Wrong email? Go back
       </p>
     </div>
