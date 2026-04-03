@@ -5,7 +5,7 @@ body {
   font-family: "Poppins", sans-serif;
 }
 
-@layer utilities {  
+@layer utilities {
   .animate-in {
     animation-fill-mode: both;
   }
@@ -44,6 +44,10 @@ body {
     @apply bg-gradient-to-r from-[#0b0220] via-blue-800 to-blue-500 
         hover:from-blue-700 hover:to-blue-400 
         transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.05];
+  }
+
+  .card-bg {
+    @apply w-full max-w-md sm:max-w-lg md:max-w-xl p-4 sm:p-6 md:p-8 rounded-3xl bg-white/20 backdrop-blur-lg shadow-2xl border border-white/30;
   }
 }
 

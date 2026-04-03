@@ -17,10 +17,10 @@ export default function RolesSection() {
   ];
 
   return (
-    <div className="flex items-center justify-center px-4  ">
-      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white shadow-xl">
+    <div className="flex items-center justify-center px-4">
+      <div className="card-bg">
         {/* Title */}
-        <h2 className="text-center text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
+        <h2 className="text-center text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6 text-gray-900">
           4 Roles • One platform
         </h2>
 
@@ -29,22 +29,22 @@ export default function RolesSection() {
           {roles.map((role, index) => (
             <div
               key={index}
-              className="group flex items-center justify-between bg-white/90 backdrop-blur-md rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-white cursor-pointer"
+              className="group flex items-center justify-between bg-white/30 backdrop-blur-md rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-lg border border-white/20 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
             >
               {/* Left Section */}
               <div className="flex items-center gap-3 sm:gap-4">
                 <span
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: role.color }}
                 ></span>
 
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 group-hover:text-black transition">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 group-hover:text-gray-800 transition">
                   {role.title}
                 </h3>
               </div>
 
               {/* Right Text */}
-              <p className="text-xs sm:text-sm text-gray-500 group-hover:text-gray-700 transition">
+              <p className="text-xs sm:text-sm text-gray-700 group-hover:text-gray-800 transition">
                 {role.description}
               </p>
             </div>

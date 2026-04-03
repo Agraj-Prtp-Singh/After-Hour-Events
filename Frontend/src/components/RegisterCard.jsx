@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { registerUser } from "../api/auth";
-import { verifyOtp } from "../api/auth";
 
 export default function RegisterCard() {
   const [fullName, setFullName] = useState("");
@@ -85,10 +84,7 @@ export default function RegisterCard() {
 
   return (
     <div className="flex ">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-[#F8FAFC] rounded-3xl border border-slate-900/10 shadow-lg p-8 w-full"
-      >
+      <form onSubmit={handleSubmit} className="card-bg">
         <h2 className="text-2xl font-bold text-center mb-6">
           Create your account
         </h2>

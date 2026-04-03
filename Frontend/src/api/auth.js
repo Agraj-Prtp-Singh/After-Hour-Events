@@ -1,23 +1,24 @@
-export const registerUser = async (data) => {
-  console.log("Mock API request:", data);
+import axios from "axios";
 
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // simulate success
-      if (data.email !== "error@test.com") {
-        resolve({
-          success: true,
-          message: "User registered successfully",
-          userId: "12345",
-        });
-      } else {
-        reject({
-          success: false,
-          message: "Email already exists",
-        });
-      }
-    }, 1000); // simulate delay
-  });
+const BASE_URL = "http://localhost:5000/api/v1/auth"; // change if needed
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/register`, userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    // better error handling
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Registration failed",
+    );
+  }
 };
 
 export const verifyOtp = async (otp) => {

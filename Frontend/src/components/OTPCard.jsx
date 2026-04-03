@@ -74,7 +74,7 @@ export default function OTPCard() {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-md border text-center">
+    <div className="card-bg">
       <h2 className="text-2xl font-bold mb-2">OTP Verification</h2>
 
       <p className="text-sm text-gray-500 mb-6">
