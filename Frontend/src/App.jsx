@@ -7,12 +7,12 @@ import AdminSidebar from "./components/AdminSidebar";
 function App() {
   return (
     <div className="bg-[#F8FAFC] relative flex flex-col min-h-screen text-black overflow-hidden">
-      {/* <Routes>
+      <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/otp" element={<OTPPage />} />
         <Route path="/" element={<LandingPage />} />
-      </Routes> */}
-      <AdminSidebar />
+        <Route path="/admin" element={<AdminSidebar />} />
+      </Routes>
     </div>
   );
 }

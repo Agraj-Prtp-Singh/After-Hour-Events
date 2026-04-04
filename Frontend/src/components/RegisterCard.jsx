@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { registerUser } from "../api/auth";
+import { registerUser, sendOtp } from "../api/auth";
 
 export default function RegisterCard() {
   const [fullName, setFullName] = useState("");
@@ -17,26 +17,23 @@ export default function RegisterCard() {
 
   const navigate = useNavigate();
 
-  // Live password match check
   useEffect(() => {
     if (confirmPassword && password !== confirmPassword) {
       setError("Passwords do not match!");
     } else if (password && (password.length < 6 || password.length > 12)) {
-      setError("Password must be 6–12 characters long!");
+      setError("Password must be 6-12 characters long!");
     } else {
       setError("");
     }
   }, [password, confirmPassword]);
 
-  // handling submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Remove the +977 prefix and any spaces
     const phoneDigits = phone.replace("+977", "").trim();
 
     if (password.length < 6 || password.length > 12) {
-      setError("Password must be 6–12 characters long!");
+      setError("Password must be 6-12 characters long!");
       return;
     }
 
@@ -51,6 +48,7 @@ export default function RegisterCard() {
     }
 
     setLoading(true);
+    setError("");
 
     try {
       const response = await registerUser({
@@ -63,9 +61,11 @@ export default function RegisterCard() {
 
       console.log("Success:", response);
 
+      await sendOtp(email);
+
       navigate("/otp", {
-        state: { email: email },
-      }); // move ONLY on success
+        state: { email },
+      });
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -73,10 +73,8 @@ export default function RegisterCard() {
     }
   };
 
-  // Phone input change handler
   const handlePhoneChange = (e) => {
     const value = e.target.value;
-    // Only allow numbers after +977
     if (value.startsWith("+977") && /^\+977\s?\d*$/.test(value)) {
       setPhone(value);
     }
@@ -115,7 +113,6 @@ export default function RegisterCard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Password */}
             <div className="flex flex-col">
               <label className="font-bold mb-1">Password</label>
               <div className="relative">
@@ -138,7 +135,6 @@ export default function RegisterCard() {
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div className="flex flex-col">
               <label className="font-bold mb-1">Confirm Password</label>
               <div className="relative">
@@ -153,7 +149,9 @@ export default function RegisterCard() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/3 text-gray-500"
                 >
                   {showConfirmPassword ? (
@@ -166,7 +164,6 @@ export default function RegisterCard() {
             </div>
           </div>
 
-          {/* Phone Number */}
           <div className="flex flex-col">
             <label className="font-bold mb-1">Phone Number</label>
             <input
@@ -176,12 +173,11 @@ export default function RegisterCard() {
               placeholder="9812345678"
               name="phone-number"
               className="input"
-              maxLength={15} // +977 + 10 digits
+              maxLength={15}
               required
             />
           </div>
 
-          {/* Select Role */}
           <div className="flex flex-col">
             <label htmlFor="role" className="font-bold mb-1">
               Role
@@ -204,7 +200,6 @@ export default function RegisterCard() {
             </select>
           </div>
 
-          {/* Agreement Checkbox */}
           <div className="flex items-center mt-2">
             <input
               type="checkbox"
@@ -230,7 +225,6 @@ export default function RegisterCard() {
             {loading ? "Creating..." : "Create Account"}
           </button>
 
-          {/* Already have an account */}
           <p className="text-center text-sm">
             Already have an account?{" "}
             <span className="text-blue-500 font-bold cursor-pointer">
