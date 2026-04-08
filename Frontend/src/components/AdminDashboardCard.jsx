@@ -1,5 +1,3 @@
-import AdminPageHeader from "./AdminPageHeader";
-
 // Dummy dynamic data
 const events = [
   {
@@ -33,39 +31,51 @@ const events = [
 
 function EventCard({ event }) {
   return (
-    <div className="w-72 rounded-3xl shadow-md bg-white overflow-hidden transition hover:scale-105 flex-1">
-      {/* Top image */}
-      <div className="h-36 bg-[#0b0220] rounded-b-3xl"></div>
+    <article className="w-72 flex-1 overflow-hidden rounded-3xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="h-36 rounded-b-3xl bg-[#0b0220]" />
 
-      <div className="p-4 space-y-2">
-        <span className={`px-3 py-1 text-sm rounded-full ${event.color}`}>
+      <div className="space-y-2 p-4">
+        <span className={`rounded-full px-3 py-1 text-sm ${event.color}`}>
           {event.category}
         </span>
 
-        <h2 className="font-semibold text-lg">{event.title}</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{event.title}</h2>
 
-        <p className="text-sm text-gray-600">
-          {event.date} • {event.location}
+        <p className="text-sm text-slate-600">
+          {event.date} | {event.location}
         </p>
 
         <button
-          className={`mt-2 px-4 py-1 rounded-full text-sm ${event.buttonColor}`}
+          type="button"
+          className={`mt-2 rounded-full px-4 py-1 text-sm ${event.buttonColor}`}
         >
           View Details
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
 export default function AdminDashboard() {
   return (
     <div className="flex min-h-full flex-col gap-6">
-      <AdminPageHeader
-        title="Events"
-        userName="Aragon Sama"
-        userRole="Admin User"
-      />
+      <section className="flex flex-col gap-3 rounded-[2rem] bg-white px-5 py-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:flex-row md:items-end md:justify-between md:px-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Snapshot
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            Upcoming Events
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Quick view of curated events for admin tracking.
+          </p>
+        </div>
+
+        <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+          {events.length} events listed
+        </span>
+      </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap gap-6">
