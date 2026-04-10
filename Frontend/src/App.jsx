@@ -4,10 +4,16 @@ import OTPPage from "./pages/OTPPage";
 import LandingPage from "./pages/LandingPage";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminDashboardPage from "./pages/AdminDashboard";
-import AdminEvents from "./pages/AdminEvents";
+import AdminEvents from "./pages/Admin.jsx";
 import Footer from "./components/Footer";
 
-function AdminLayout({ children }) {
+import StudentDashboard from "./pages/Studentdashboard"; 
+import BrowseStudentEvents from "./pages/BrowseStudentEvents";
+import StudentBookings from "./pages/StudentBookings";
+import StudentEventDetail from "./pages/StudentEventDetail";
+
+// RENAMED THIS FROM AdminLayout TO DashboardLayout
+function DashboardLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-black">
       <AdminSidebar />
@@ -26,23 +32,60 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/otp" element={<OTPPage />} />
 
+      {/* Admin Routes now use the renamed DashboardLayout */}
       <Route
         path="/admin/dashboard"
         element={
-          <AdminLayout>
+          <DashboardLayout>
             <AdminDashboardPage />
-          </AdminLayout>
+          </DashboardLayout>
         }
       />
       <Route
         path="/admin/events"
         element={
-          <AdminLayout>
+          <DashboardLayout>
             <AdminEvents />
-          </AdminLayout>
+          </DashboardLayout>
         }
       />
+
+      {/* Student Routes */}
+      <Route
+        path="/student-dashboard"
+        element={
+          <DashboardLayout>
+            <StudentDashboard />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/student/browse"
+        element={
+          <DashboardLayout>
+            <BrowseStudentEvents />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/student/bookings"
+        element={
+          <DashboardLayout>
+            <StudentBookings />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/student/event/:id"
+        element={
+          <DashboardLayout>
+            <StudentEventDetail />
+          </DashboardLayout>
+        }
+      />
+
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/student" element={<Navigate to="/student-dashboard" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
