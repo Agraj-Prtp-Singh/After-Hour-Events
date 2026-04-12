@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api/v1/auth"; // change if needed
+const BASE_URL = "http://localhost:5000/api/v1/auth";
 
 export const registerUser = async (userData) => {
   try {
@@ -12,7 +12,6 @@ export const registerUser = async (userData) => {
 
     return response.data;
   } catch (error) {
-    // better error handling
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
@@ -21,21 +20,46 @@ export const registerUser = async (userData) => {
   }
 };
 
-export const verifyOtp = async (otp) => {
-  console.log("Verifying OTP:", otp);
+export const sendOtp = async (email) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/otp/send`,
+      { email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (otp === "123456") {
-        resolve({
-          success: true,
-          message: "OTP verified",
-        });
-      } else {
-        reject({
-          message: "Invalid OTP",
-        });
-      }
-    }, 1000);
-  });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to send OTP",
+    );
+  }
+};
+
+export const verifyOtp = async ({ email, otp }) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/otp/verify`,
+      { email, otp },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "OTP verification failed",
+    );
+  }
 };

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { verifyOtp } from "../api/auth";
+import { sendOtp, verifyOtp } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
@@ -11,9 +11,8 @@ export default function OTPCard() {
   const navigate = useNavigate();
 
   const location = useLocation();
-  const email = location.state?.email || "your email";
+  const email = location.state?.email || "";
 
-  // whenever the OTP changes checks all boxes and verify automatically
   useEffect(() => {
     if (otp.every((digit) => digit !== "")) {
       handleVerify();
@@ -27,7 +26,6 @@ export default function OTPCard() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // move to next input
     if (value && index < 5) {
       inputsRef.current[index + 1].focus();
     }
@@ -42,20 +40,27 @@ export default function OTPCard() {
   const handleVerify = async () => {
     const code = otp.join("");
 
+    if (!email) {
+      setError("Missing email for OTP verification. Please register again.");
+      return;
+    }
+
     if (code.length < 6) {
       setError("Enter full OTP");
       return;
     }
 
     setLoading(true);
+    setError("");
 
     try {
-      const res = await verifyOtp(code);
+      const res = await verifyOtp({ email, otp: code });
       console.log(res);
 
-      // 👉 success flow
+      localStorage.setItem("token", res.data?.token || "");
+      localStorage.setItem("user", JSON.stringify(res.data?.user || {}));
+
       alert("OTP Verified!!!");
-      // navigate("/dashboard") later
     } catch (err) {
       setError(err.message || "Invalid OTP");
     } finally {
@@ -63,14 +68,25 @@ export default function OTPCard() {
     }
   };
 
-  const handleResend = () => {
-    console.log("Resending OTP...");
+  const handleResend = async () => {
+    if (!email) {
+      setError("Missing email for OTP resend. Please register again.");
+      return;
+    }
 
-    // reset OTP
-    setOtp(["", "", "", "", "", ""]);
-    inputsRef.current[0].focus();
+    setLoading(true);
+    setError("");
 
-    alert("OTP sent again (mock)");
+    try {
+      await sendOtp(email);
+      setOtp(["", "", "", "", "", ""]);
+      inputsRef.current[0]?.focus();
+      alert("OTP sent again");
+    } catch (err) {
+      setError(err.message || "Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,7 +94,8 @@ export default function OTPCard() {
       <h2 className="text-2xl font-bold mb-2">OTP Verification</h2>
 
       <p className="text-sm text-gray-500 mb-6">
-        We sent a 6 digit code to <span className="text-blue-500">{email}</span>
+        We sent a 6 digit code to{" "}
+        <span className="text-blue-500">{email || "your email"}</span>
       </p>
 
       <div className="flex justify-center gap-3 mb-6">
@@ -101,15 +118,16 @@ export default function OTPCard() {
         disabled={loading}
         className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
       >
-        {loading ? "Verifying..." : "Verify code"}{" "}
+        {loading ? "Verifying..." : "Verify code"}
       </button>
       {error && <p className="text-red-500 mt-2">{error}</p>}
 
       <button
         className="w-full mt-3 bg-gray-200 py-2 rounded-lg text-sm hover:bg-gray-300"
         onClick={handleResend}
+        disabled={loading}
       >
-        Didn’t receive the OTP? Resend code
+        Didn&apos;t receive the OTP? Resend code
       </button>
 
       <p
