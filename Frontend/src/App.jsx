@@ -5,6 +5,7 @@ import LandingPage from "./pages/LandingPage";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminDashboardPage from "./pages/AdminDashboard";
 import AdminEvents from "./pages/AdminEvents";
+import AdminSettings from "./pages/AdminSettings";
 import Footer from "./components/Footer";
 
 function AdminLayout({ children }) {
@@ -39,6 +40,14 @@ function App() {
         element={
           <AdminLayout>
             <AdminEvents />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminLayout>
+            <AdminSettings />
           </AdminLayout>
         }
       />

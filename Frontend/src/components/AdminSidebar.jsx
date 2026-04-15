@@ -17,7 +17,7 @@ const navItems = [
     to: "/admin/dashboard",
   },
   { id: "events", label: "Events", icon: CalendarDays, to: "/admin/events" },
-  { id: "setting", label: "Setting", icon: Settings },
+  { id: "settings", label: "Settings", icon: Settings, to: "/admin/settings" },
 ];
 
 export default function AdminSidebar() {
@@ -59,21 +59,6 @@ export default function AdminSidebar() {
 
       <nav className="mt-10 flex flex-1 flex-col gap-3">
         {navItems.map(({ id, label, icon: Icon, to }) => {
-          if (!to) {
-            return (
-              <button
-                key={id}
-                type="button"
-                className={`group flex items-center rounded-2xl text-white/60 transition-all duration-200 ${
-                  isOpen ? "gap-3 px-4 py-3" : "justify-center px-2 py-3"
-                }`}
-              >
-                <Icon size={20} className="shrink-0" />
-                {isOpen && <span className="text-sm font-semibold">{label}</span>}
-              </button>
-            );
-          }
-
           return (
             <NavLink
               key={id}
