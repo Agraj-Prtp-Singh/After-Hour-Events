@@ -21,6 +21,26 @@ class EventRepository {
       .populate('createdBy', 'fullName phone email role');
   }
 
+  listByOwner(ownerId, options) {
+    return Event.find({ createdBy: ownerId })
+      .sort({ startDate: 1, createdAt: -1 })
+      .skip(options.skip)
+      .limit(options.limit)
+      .populate('createdBy', 'fullName phone email role');
+  }
+
+  listIdsByOwner(ownerId) {
+    return Event.find({ createdBy: ownerId }).select('_id');
+  }
+
+  async sumCapacityByOwner(ownerId) {
+    const result = await Event.aggregate([
+      { $match: { createdBy: ownerId } },
+      { $group: { _id: null, totalCapacity: { $sum: '$capacity' } } }
+    ]);
+    return result[0]?.totalCapacity ?? 0;
+  }
+
   count(filter) {
     return Event.countDocuments(filter);
   }

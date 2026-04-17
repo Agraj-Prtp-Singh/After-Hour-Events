@@ -44,9 +44,39 @@ class RegistrationService {
     return updated;
   }
 
+  async cancelRegistrationById(registrationId, userId) {
+    const updated = await registrationRepository.cancelById(registrationId, userId);
+
+    if (!updated) {
+      throw new AppError('Active registration not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    return updated;
+  }
+
   async listMyRegistrations(userId) {
     const registrations = await registrationRepository.listByUser(userId);
     return registrations;
+  }
+
+  async getStudentStats(userId) {
+    const registrations = await registrationRepository.listByUser(userId);
+    const now = new Date();
+    const total = registrations.length;
+    const upcoming = registrations.filter((registration) => {
+      const start = registration.eventId?.startDate;
+      return start && new Date(start) >= now;
+    }).length;
+    const attended = registrations.filter((registration) => {
+      const end = registration.eventId?.endDate;
+      return end && new Date(end) < now;
+    }).length;
+
+    return {
+      eventsAttended: attended,
+      upcomingEvents: upcoming,
+      totalBookings: total
+    };
   }
 }
 
