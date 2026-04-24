@@ -35,6 +35,7 @@ const formatDate = (value) => {
 
 function EventCard({ event, styleIndex }) {
   const style = categoryStyles[styleIndex % categoryStyles.length];
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <article className="w-72 flex-1 overflow-hidden rounded-3xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
@@ -53,10 +54,24 @@ function EventCard({ event, styleIndex }) {
 
         <button
           type="button"
+          onClick={() => setIsExpanded((current) => !current)}
+          aria-expanded={isExpanded}
           className={`mt-2 rounded-full px-4 py-1 text-sm ${style.button}`}
         >
-          View Details
+          {isExpanded ? "Hide Details" : "View Details"}
         </button>
+
+        <div
+          className={`mt-2 grid transition-all duration-300 ease-out ${
+            isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <p className="rounded-2xl bg-slate-100 px-3 py-2 text-sm text-slate-700">
+              {event.description || "No description available for this event."}
+            </p>
+          </div>
+        </div>
       </div>
     </article>
   );
@@ -86,6 +101,7 @@ export default function AdminDashboard() {
           title: event.title || "Untitled Event",
           date: formatDate(event.startDate),
           location: event.location || "TBD",
+          description: event.description || "",
         }));
 
         setEvents(mappedEvents);
