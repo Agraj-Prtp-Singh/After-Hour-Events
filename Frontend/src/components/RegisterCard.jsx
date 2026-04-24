@@ -195,6 +195,7 @@ export default function RegisterCard() {
               <option value="student">Student</option>
               <option value="event-planner">Event Planner</option>
               <option value="organizer">Organizer</option>
+              <option value="vendor">Vendor</option>
             </select>
           </div>
 
