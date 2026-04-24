@@ -1,6 +1,9 @@
+import { useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   MapPin,
   Pencil,
   Save,
@@ -36,7 +39,13 @@ function FieldInput({ label, type = "text", value, onChange }) {
   );
 }
 
-function ActionButton({ label, icon: Icon, onClick, variant = "neutral" }) {
+function ActionButton({
+  label,
+  icon: Icon,
+  onClick,
+  variant = "neutral",
+  disabled = false,
+}) {
   const variants = {
     primary: "bg-[#4E7BFF] text-white hover:bg-[#3E68E5]",
     success: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
@@ -50,7 +59,8 @@ function ActionButton({ label, icon: Icon, onClick, variant = "neutral" }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${variants[variant]}`}
+      disabled={disabled}
+      className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]}`}
     >
       <Icon size={16} />
       {label}
@@ -61,6 +71,7 @@ function ActionButton({ label, icon: Icon, onClick, variant = "neutral" }) {
 export default function AdminEventEditCard({
   event,
   isEditing,
+  isBusy,
   editForm,
   onEditStart,
   onEditCancel,
@@ -70,8 +81,7 @@ export default function AdminEventEditCard({
   onApprove,
   onReject,
 }) {
-  const isFinalized =
-    event.status === "Approved" || event.status === "Rejected";
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5 transition hover:border-slate-300 hover:shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
@@ -95,6 +105,7 @@ export default function AdminEventEditCard({
 
               <FieldInput
                 label="Date"
+                type="date"
                 value={editForm.date}
                 onChange={(value) => onFieldChange("date", value)}
               />
@@ -132,6 +143,21 @@ export default function AdminEventEditCard({
                   value={event.location}
                 />
               </div>
+
+              <div
+                className={`mt-3 grid transition-all duration-300 ease-out ${
+                  isExpanded
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <p className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                    {event.description ||
+                      "No description available for this event."}
+                  </p>
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -144,43 +170,52 @@ export default function AdminEventEditCard({
                 icon={X}
                 onClick={onEditCancel}
                 variant="neutral"
+                disabled={isBusy}
               />
               <ActionButton
-                label="Save"
+                label={isBusy ? "Saving..." : "Save"}
                 icon={Save}
                 onClick={onSave}
                 variant="primary"
+                disabled={isBusy}
               />
             </>
-          ) : isFinalized ? (
-            <span className="inline-flex rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">
-              Finalized: no further changes
-            </span>
           ) : (
             <>
+              <ActionButton
+                label={isExpanded ? "Hide Details" : "View Details"}
+                icon={isExpanded ? ChevronUp : ChevronDown}
+                onClick={() => setIsExpanded((current) => !current)}
+                variant="neutral"
+                disabled={isBusy}
+              />
               <ActionButton
                 label="Edit"
                 icon={Pencil}
                 onClick={onEditStart}
                 variant="neutral"
+                disabled={isBusy}
               />
               <ActionButton
-                label="Approve"
+                label={isBusy ? "Approving..." : "Approve"}
                 icon={CheckCircle2}
                 onClick={onApprove}
                 variant="success"
+                disabled={isBusy}
               />
               <ActionButton
-                label="Reject"
+                label={isBusy ? "Rejecting..." : "Reject"}
                 icon={X}
                 onClick={onReject}
                 variant="warning"
+                disabled={isBusy}
               />
               <ActionButton
-                label="Delete"
+                label={isBusy ? "Deleting..." : "Delete"}
                 icon={Trash2}
                 onClick={onDelete}
                 variant="danger"
+                disabled={isBusy}
               />
             </>
           )}
