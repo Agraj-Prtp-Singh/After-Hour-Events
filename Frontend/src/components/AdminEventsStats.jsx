@@ -11,12 +11,19 @@ export default function AdminEventsStats({
   totalEvents,
   approvedEvents,
   rejectedEvents,
+  loading,
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <StatCard label="Total Events" value={totalEvents} />
-      <StatCard label="Approved Events" value={approvedEvents} />
-      <StatCard label="Rejected Events" value={rejectedEvents} />
+      <StatCard label="Total Events" value={loading ? "..." : totalEvents} />
+      <StatCard
+        label="Approved Events"
+        value={loading ? "..." : approvedEvents}
+      />
+      <StatCard
+        label="Rejected Events"
+        value={loading ? "..." : rejectedEvents}
+      />
     </div>
   );
 }
