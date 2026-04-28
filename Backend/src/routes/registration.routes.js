@@ -1,13 +1,11 @@
 const express = require('express');
-const registrationController = require('../controllers/registration.controller');
-const { authMiddleware } = require('../middlewares/auth.middleware');
-const validateObjectId = require('../middlewares/validateObjectId.middleware');
-
 const router = express.Router();
 
-router.get('/me', authMiddleware, registrationController.listMyRegistrations);
-router.get('/ticket/scan', authMiddleware, registrationController.scanTicketForEventDetails);
-router.post('/:eventId', authMiddleware, validateObjectId('eventId'), registrationController.registerForEvent);
-router.delete('/:eventId', authMiddleware, validateObjectId('eventId'), registrationController.cancelMyRegistration);
+const controller = require('../controllers/registration.controller');
+const auth = require('../middlewares/auth.middleware');
+
+router.post('/:eventId', auth, controller.register);
+router.delete('/:eventId', auth, controller.cancel);
+router.get('/me', auth, controller.getMyRegistrations);
 
 module.exports = router;

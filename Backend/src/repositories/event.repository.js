@@ -1,37 +1,15 @@
 const Event = require('../models/event.model');
 
-class EventRepository {
-  create(data) {
-    return Event.create(data);
-  }
+exports.create = (data) => Event.create(data);
 
-  findById(id) {
-    return Event.findById(id);
-  }
+exports.findById = (id) => Event.findById(id);
 
-  findByIdWithCreator(id) {
-    return Event.findById(id).populate('createdBy', 'fullName phone email role');
-  }
+exports.update = (id, data) =>
+  Event.findByIdAndUpdate(id, data, { new: true });
 
-  list(filter, options) {
-    return Event.find(filter)
-      .sort({ startDate: 1, createdAt: -1 })
-      .skip(options.skip)
-      .limit(options.limit)
-      .populate('createdBy', 'fullName phone email role');
-  }
+exports.delete = (id) =>
+  Event.findByIdAndDelete(id);
 
-  count(filter) {
-    return Event.countDocuments(filter);
-  }
-
-  updateById(id, update) {
-    return Event.findByIdAndUpdate(id, update, { new: true, runValidators: true });
-  }
-
-  deleteById(id) {
-    return Event.findByIdAndDelete(id);
-  }
-}
-
-module.exports = new EventRepository();
+exports.findAll = (query) => {
+  return Event.find().sort({ createdAt: -1 });
+};

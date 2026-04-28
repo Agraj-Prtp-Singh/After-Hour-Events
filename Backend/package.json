@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "lint": "echo \"Add ESLint config if needed\"",
     "check": "node --check src/server.js",
-    "migrate:roles": "node src/scripts/migrate-user-roles.js"
+    "migrate:roles": "node src/scripts/migrate-user-roles.js",
+    "migrate:db:test-to-event": "node src/scripts/sync-test-to-event-management.js"
   },
   "keywords": [
     "event-management",

@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 export default function Navbar({ variant = "default" }) {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function Navbar({ variant = "default" }) {
       {/* Logo */}
       <div onClick={() => navigate("/")} className="cursor-pointer">
         <img
-          src="/logo.png"
+          src={logo}
           alt="after-hour-events"
           className="h-16 w-16 sm:-ml-3 sm:h-30 sm:w-30"
         />

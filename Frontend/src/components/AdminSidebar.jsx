@@ -1,21 +1,27 @@
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
-  Home,
+  LayoutDashboard,
   CalendarDays,
   Settings,
 } from "lucide-react";
+import logo from "../assets/logo.png";
 
 const navItems = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "events", label: "Events", icon: CalendarDays },
-  { id: "setting", label: "Setting", icon: Settings },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    to: "/admin/dashboard",
+  },
+  { id: "events", label: "Events", icon: CalendarDays, to: "/admin/events" },
+  { id: "settings", label: "Settings", icon: Settings, to: "/admin/settings" },
 ];
 
 export default function AdminSidebar() {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeItem, setActiveItem] = useState("home");
 
   return (
     <aside
@@ -34,7 +40,7 @@ export default function AdminSidebar() {
 
       <div className="mt-6 flex flex-col items-center">
         <img
-          src="/logo.png"
+          src={logo}
           alt="AfterHour Events logo"
           className={`${isOpen ? "h-28 w-28" : "h-14 w-14"} object-contain transition-all duration-300`}
         />
@@ -52,25 +58,24 @@ export default function AdminSidebar() {
       </div>
 
       <nav className="mt-10 flex flex-1 flex-col gap-3">
-        {navItems.map(({ id, label, icon: Icon }) => {
-          const isActive = activeItem === id;
-
+        {navItems.map(({ id, label, icon: Icon, to }) => {
           return (
-            <button
+            <NavLink
               key={id}
-              type="button"
-              onClick={() => setActiveItem(id)}
-              className={`group flex items-center rounded-2xl transition-all duration-200 ${
-                isOpen ? "gap-3 px-4 py-3" : "justify-center px-2 py-3"
-              } ${
-                isActive
-                  ? "bg-[#4E7BFF] text-white shadow-[0_10px_30px_rgba(78,123,255,0.35)]"
-                  : "text-white/80 hover:bg-white/8 hover:text-white"
-              }`}
+              to={to}
+              className={({ isActive }) =>
+                `group flex items-center rounded-2xl transition-all duration-200 ${
+                  isOpen ? "gap-3 px-4 py-3" : "justify-center px-2 py-3"
+                } ${
+                  isActive
+                    ? "bg-[#4E7BFF] text-white shadow-[0_10px_30px_rgba(78,123,255,0.35)]"
+                    : "text-white/80 hover:bg-white/8 hover:text-white"
+                }`
+              }
             >
               <Icon size={20} className="shrink-0" />
               {isOpen && <span className="text-sm font-semibold">{label}</span>}
-            </button>
+            </NavLink>
           );
         })}
       </nav>

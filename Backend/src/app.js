@@ -14,6 +14,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 app.use('/api/v1', routes);
+app.use('/api', routes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
