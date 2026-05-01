@@ -7,6 +7,10 @@ import AdminDashboardPage from "./pages/AdminDashboard";
 import AdminEvents from "./pages/AdminEvents";
 import AdminSettings from "./pages/AdminSettings";
 import Footer from "./components/Footer";
+import VendorSidebar from "./components/VendorSidebar";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorApplyEvents from "./pages/VendorApplyEvents";
+import VendorSettings from "./pages/VendorSettings";
 
 function AdminLayout({ children }) {
   return (
@@ -21,6 +25,18 @@ function AdminLayout({ children }) {
 }
 
 function App() {
+  function VendorLayout({ children }) {
+    return (
+      <div className="flex min-h-screen bg-[#F8FAFC] text-black">
+        <VendorSidebar />
+        <div className="flex min-h-screen flex-1 flex-col">
+          <main className="flex-1 overflow-y-auto">{children}</main>
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -52,6 +68,34 @@ function App() {
         }
       />
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route
+        path="/vendor/dashboard"
+        element={
+          <VendorLayout>
+            <VendorDashboard />
+          </VendorLayout>
+        }
+      />
+      <Route
+        path="/vendor/apply-events"
+        element={
+          <VendorLayout>
+            <VendorApplyEvents />
+          </VendorLayout>
+        }
+      />
+      <Route
+        path="/vendor/settings"
+        element={
+          <VendorLayout>
+            <VendorSettings />
+          </VendorLayout>
+        }
+      />
+      <Route
+        path="/vendor"
+        element={<Navigate to="/vendor/dashboard" replace />}
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
