@@ -26,4 +26,20 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+const authorize = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new AppError('Unauthorized', HTTP_STATUS.UNAUTHORIZED));
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(new AppError('Forbidden', HTTP_STATUS.FORBIDDEN));
+    }
+
+    next();
+  };
+};
+
 module.exports = authMiddleware;
+module.exports.authMiddleware = authMiddleware;
+module.exports.authorize = authorize;
