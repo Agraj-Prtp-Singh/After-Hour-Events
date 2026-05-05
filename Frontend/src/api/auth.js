@@ -34,10 +34,14 @@ export const loginUser = async ({ email, password }) => {
     throw new Error(getApiErrorMessage(error, "Login failed"));
   }
 };
+// Base root (no /auth here)
+
+// Specific route groups
+const AUTH_URL = `${BASE_URL}/auth`;
 
 export const registerUser = async (userData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/register`, userData, {
+    const response = await axios.post(`${AUTH_URL}/register`, userData, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -52,7 +56,7 @@ export const registerUser = async (userData) => {
 export const sendOtp = async (email) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/otp/send`,
+      `${AUTH_URL}/otp/send`,
       { email },
       {
         headers: {
@@ -70,7 +74,7 @@ export const sendOtp = async (email) => {
 export const verifyOtp = async ({ email, otp }) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/otp/verify`,
+      `${AUTH_URL}/otp/verify`,
       { email, otp },
       {
         headers: {

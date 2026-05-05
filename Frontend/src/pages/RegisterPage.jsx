@@ -26,7 +26,7 @@ export default function Register() {
 
         {/* Centered Register Card */}
         <div className="flex-grow flex justify-center items-center p-4">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-3xl">
             <RegisterCard />
           </div>
         </div>

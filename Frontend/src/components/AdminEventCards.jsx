@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import AdminEventsHero from "./AdminEventsHero";
-import AdminEventsStats from "./AdminEventsStats";
-import AdminEventEditCard from "./AdminEventEditCard";
 import {
   deleteAdminEvent,
   getAdminEvents,
   updateAdminEvent,
 } from "../api/admin";
+import AdminEventsHero from "./AdminEventsHero";
+import AdminEventsStats from "./AdminEventsStats";
+import AdminEventEditCard from "./AdminEventEditCard";
 
 const emptyEditState = {
   title: "",
@@ -17,11 +17,10 @@ const emptyEditState = {
 };
 
 const formatDisplayDate = (value) => {
-  if (!value) {
-    return "Date not set";
-  }
-
-  return new Date(value).toLocaleDateString("en-US", {
+  if (!value) return "TBD";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "TBD";
+  return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -29,11 +28,9 @@ const formatDisplayDate = (value) => {
 };
 
 const formatDateTimeLocal = (value) => {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
   const offset = date.getTimezoneOffset();
   const normalized = new Date(date.getTime() - offset * 60000);
   return normalized.toISOString().slice(0, 16);
@@ -48,6 +45,8 @@ const normalizeEvent = (event) => ({
   category: event.category || "General",
   capacity: String(event.capacity ?? 0),
   created: formatDisplayDate(event.createdAt),
+  verified: Boolean(event.isPublished),
+  status: event.isPublished ? "Approved" : "Rejected",
   raw: event,
 });
 
@@ -59,6 +58,8 @@ export default function AdminEventCards() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [activeActionId, setActiveActionId] = useState(null);
+  const [rejectedEventsCount, setRejectedEventsCount] = useState(0);
 
   const fetchEvents = () => {
     setLoading(true);
@@ -80,43 +81,16 @@ export default function AdminEventCards() {
   }, []);
 
   const now = Date.now();
-  const upcomingEvents = useMemo(
-    () =>
-      events.filter(
-        (event) => event.startDate && new Date(event.startDate).getTime() >= now
-      ).length,
-    [events, now]
-  );
-  const pastEvents = useMemo(
-    () =>
-      events.filter(
-        (event) => event.startDate && new Date(event.startDate).getTime() < now
-      ).length,
-    [events, now]
+
+  const approvedEvents = useMemo(
+    () => events.filter((event) => event.status === "Approved").length,
+    [events]
   );
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this event?")) {
-      return;
-    }
-
-    setDeletingId(id);
-    setError("");
-
-    try {
-      await deleteAdminEvent(id);
-      setEvents((currentEvents) => currentEvents.filter((event) => event.id !== id));
-
-      if (editingId === id) {
-        setEditingId(null);
-        setEditForm(emptyEditState);
-      }
-    } catch (err) {
-      setError(err.message || "Failed to delete event.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const totalEvents = useMemo(
+    () => events.length + rejectedEventsCount,
+    [events.length, rejectedEventsCount]
+  );
 
   const handleEditStart = (event) => {
     setEditingId(event.id);
@@ -135,10 +109,7 @@ export default function AdminEventCards() {
   };
 
   const handleFieldChange = (field, value) => {
-    setEditForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }));
+    setEditForm((currentForm) => ({ ...currentForm, [field]: value }));
   };
 
   const handleSave = async (id) => {
@@ -168,17 +139,76 @@ export default function AdminEventCards() {
     }
   };
 
-  const statCards = [
-    { label: "Total Events", value: events.length },
-    { label: "Upcoming Events", value: upcomingEvents },
-    { label: "Past Events", value: pastEvents },
-  ];
+  const handleApprove = async (id) => {
+    setActiveActionId(id);
+    setError("");
+
+    try {
+      await updateAdminEvent(id, { isPublished: true });
+      fetchEvents();
+    } catch (err) {
+      setError(err.message || "Failed to approve event.");
+    } finally {
+      setActiveActionId(null);
+    }
+  };
+
+  const handleReject = async (id) => {
+    setActiveActionId(id);
+    setError("");
+
+    try {
+      await updateAdminEvent(id, { isPublished: false });
+      setEvents((currentEvents) =>
+        currentEvents.filter((event) => event.id !== id)
+      );
+      setRejectedEventsCount((currentCount) => currentCount + 1);
+
+      if (editingId === id) {
+        setEditingId(null);
+        setEditForm(emptyEditState);
+      }
+    } catch (err) {
+      setError(err.message || "Failed to reject event.");
+    } finally {
+      setActiveActionId(null);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this event?")) return;
+
+    setDeletingId(id);
+    setError("");
+
+    try {
+      await deleteAdminEvent(id);
+      setEvents((currentEvents) =>
+        currentEvents.filter((event) => event.id !== id)
+      );
+
+      if (editingId === id) {
+        setEditingId(null);
+        setEditForm(emptyEditState);
+      }
+    } catch (err) {
+      setError(err.message || "Failed to delete event.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <section className="w-full">
       <div className="mx-auto max-w-7xl space-y-6">
-        <AdminEventsHero />
-        <AdminEventsStats cards={statCards} />
+        <AdminEventsHero totalEvents={events.length} loading={loading} />
+
+        <AdminEventsStats
+          totalEvents={totalEvents}
+          approvedEvents={approvedEvents}
+          rejectedEvents={rejectedEventsCount}
+          loading={loading}
+        />
 
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -190,51 +220,55 @@ export default function AdminEventCards() {
           <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
-                Database Events
+                Active Events
               </h2>
               <p className="text-sm text-slate-500">
-                Review and edit live events stored in the backend.
+                Track publishing status and organizer-facing updates.
               </p>
             </div>
 
             <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
-              {loading ? "Loading..." : `${events.length} managed events`}
+              {loading ? "Syncing..." : `${events.length} managed events`}
             </span>
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-sm text-slate-400">
-              Loading events...
-            </div>
-          ) : events.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-12 text-center text-sm text-slate-400">
-              No events found in the database.
-            </div>
-          ) : (
+            <p className="text-sm text-slate-500">Loading event list...</p>
+          ) : null}
+
+          {!loading && events.length === 0 ? (
+            <p className="text-sm text-slate-500">No published events found.</p>
+          ) : null}
+
+          {!loading && events.length > 0 ? (
             <div className="space-y-4">
               {events.map((event) => {
                 const isEditing = editingId === event.id;
+                const isBusy =
+                  activeActionId === event.id ||
+                  deletingId === event.id ||
+                  saving;
 
                 return (
-                  <div
-                    key={event.id}
-                    className={deletingId === event.id || saving ? "opacity-70" : ""}
-                  >
+                  <div key={event.id} className={isBusy ? "opacity-70" : ""}>
                     <AdminEventEditCard
                       event={event}
                       isEditing={isEditing}
+                      isBusy={isBusy}
                       editForm={editForm}
                       onEditStart={() => handleEditStart(event)}
                       onEditCancel={handleEditCancel}
                       onFieldChange={handleFieldChange}
                       onSave={() => handleSave(event.id)}
                       onDelete={() => handleDelete(event.id)}
+                      onApprove={() => handleApprove(event.id)}
+                      onReject={() => handleReject(event.id)}
                     />
                   </div>
                 );
               })}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </section>

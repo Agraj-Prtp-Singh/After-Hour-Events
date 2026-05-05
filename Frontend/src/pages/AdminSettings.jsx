@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Eye, EyeOff, LogOut, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { clearAuthSession, getStoredUser } from "../utils/auth";
@@ -20,6 +20,7 @@ function getInitialSettings() {
 
 export default function AdminSettings() {
   const navigate = useNavigate();
+  const [savedSettings, setSavedSettings] = useState(getInitialSettings);
   const [settings, setSettings] = useState(getInitialSettings);
   const [profileMessage, setProfileMessage] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
@@ -35,6 +36,22 @@ export default function AdminSettings() {
   });
 
   const savedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY) || "admin123";
+
+  const isProfileDirty = useMemo(
+    () =>
+      settings.fullName.trim() !== savedSettings.fullName.trim() ||
+      settings.dob !== savedSettings.dob ||
+      settings.email.trim() !== savedSettings.email.trim(),
+    [settings, savedSettings]
+  );
+
+  const isSecurityDirty = useMemo(
+    () =>
+      Boolean(passwordForm.currentPassword) ||
+      Boolean(passwordForm.newPassword) ||
+      Boolean(passwordForm.confirmPassword),
+    [passwordForm]
+  );
 
   const handleProfileChange = (field, value) => {
     setSettings((current) => ({ ...current, [field]: value }));
@@ -57,7 +74,15 @@ export default function AdminSettings() {
     localStorage.setItem("user", JSON.stringify(nextUser));
     sessionStorage.setItem("user", JSON.stringify(nextUser));
 
+    setSavedSettings(profileData);
+    setSettings(profileData);
     setProfileMessage("Profile updated successfully.");
+    setIsProfileEditing(false);
+  };
+
+  const handleProfileCancel = () => {
+    setSettings(savedSettings);
+    setProfileMessage("");
     setIsProfileEditing(false);
   };
 
@@ -74,8 +99,11 @@ export default function AdminSettings() {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordMessage("New password must be at least 6 characters.");
+    if (
+      passwordForm.newPassword.length < 6 ||
+      passwordForm.newPassword.length > 12
+    ) {
+      setPasswordMessage("New password must be 6-12 characters long.");
       return;
     }
 
@@ -91,6 +119,16 @@ export default function AdminSettings() {
       confirmPassword: "",
     });
     setPasswordMessage("Password updated successfully.");
+    setIsSecurityEditing(false);
+  };
+
+  const handlePasswordCancel = () => {
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setPasswordMessage("");
     setIsSecurityEditing(false);
   };
 
@@ -131,7 +169,11 @@ export default function AdminSettings() {
             <button
               type="button"
               onClick={() => {
-                setIsProfileEditing((current) => !current);
+                if (isProfileEditing) {
+                  handleProfileCancel();
+                  return;
+                }
+                setIsProfileEditing(true);
                 setProfileMessage("");
               }}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -194,14 +236,24 @@ export default function AdminSettings() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={!isProfileEditing}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#4E7BFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3D69EA]"
-          >
-            <Save size={16} />
-            Save Changes
-          </button>
+          {isProfileEditing && isProfileDirty && (
+            <div className="mt-6 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleProfileCancel}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#4E7BFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3D69EA]"
+              >
+                <Save size={16} />
+                Save Changes
+              </button>
+            </div>
+          )}
         </form>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
@@ -215,7 +267,11 @@ export default function AdminSettings() {
             <button
               type="button"
               onClick={() => {
-                setIsSecurityEditing((current) => !current);
+                if (isSecurityEditing) {
+                  handlePasswordCancel();
+                  return;
+                }
+                setIsSecurityEditing(true);
                 setPasswordMessage("");
               }}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -329,14 +385,24 @@ export default function AdminSettings() {
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={!isSecurityEditing}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#4E7BFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3D69EA]"
-            >
-              <Save size={16} />
-              Change Password
-            </button>
+            {isSecurityEditing && isSecurityDirty && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handlePasswordCancel}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#4E7BFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3D69EA]"
+                >
+                  <Save size={16} />
+                  Change Password
+                </button>
+              </div>
+            )}
           </form>
 
           <div className="mt-8 border-t border-slate-100 pt-6">

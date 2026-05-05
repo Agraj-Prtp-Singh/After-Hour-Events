@@ -108,6 +108,7 @@ export default function RegisterCard() {
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="input"
               required
             />
           </div>
@@ -149,9 +150,7 @@ export default function RegisterCard() {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/3 text-gray-500"
                 >
                   {showConfirmPassword ? (
@@ -195,8 +194,10 @@ export default function RegisterCard() {
                 Select your role
               </option>
               <option value="student">Student</option>
+              <option value="event-planner">Event Planner</option>
               <option value="event-planner">Event-Planner</option>
               <option value="organizer">Organizer</option>
+              <option value="vendor">Vendor</option>
             </select>
           </div>
 
