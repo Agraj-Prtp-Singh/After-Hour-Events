@@ -1,36 +1,5 @@
-import { useMemo, useState } from "react";
-
-const VENDOR_APPLICATIONS_STORAGE_KEY = "vendorApplicationsDummy";
-
-const dummyEvents = [
-  {
-    _id: "event-1",
-    title: "Kathmandu Food Carnival",
-    description: "A lively food event with regional and fusion cuisine stalls.",
-    location: "Bhrikutimandap Grounds",
-    startDate: "2026-05-18",
-    endDate: "2026-05-19",
-    isPublished: true,
-  },
-  {
-    _id: "event-2",
-    title: "Summer Music Fest",
-    description: "Live music performances with food, crafts, and experience zones.",
-    location: "Tundikhel Open Arena",
-    startDate: "2026-06-01",
-    endDate: "2026-06-02",
-    isPublished: true,
-  },
-  {
-    _id: "event-3",
-    title: "Night Market Expo",
-    description: "Evening market with handmade products, snacks, and local brands.",
-    location: "Patan Durbar Square Side Street",
-    startDate: "2026-06-25",
-    endDate: "2026-06-25",
-    isPublished: true,
-  },
-];
+import { useEffect, useMemo, useState } from "react";
+import { applyToVendorEvent, getVendorEvents } from "../api/vendor";
 
 const defaultFormState = {
   eventId: "",
@@ -49,17 +18,31 @@ const formatDate = (value) => {
 export default function VendorApplyEvents() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
   const [formData, setFormData] = useState(defaultFormState);
 
+  useEffect(() => {
+    getVendorEvents()
+      .then((data) => {
+        setEvents(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        setError(err.message || "Could not load available events.");
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const activeEvents = useMemo(
     () =>
-      dummyEvents.filter((event) => {
-        if (!event?.isPublished) return false;
+      events.filter((event) => {
+        if (!event?.openToVendors) return false;
         const eventEndDate = new Date(event.endDate);
         return !Number.isNaN(eventEndDate.getTime()) && eventEndDate >= new Date();
       }),
-    [],
+    [events],
   );
 
   const openApplicationModal = (eventId) => {
@@ -88,32 +71,16 @@ export default function VendorApplyEvents() {
       setIsSubmitting(true);
       setSubmitMessage("");
 
-      const selectedEvent = activeEvents.find((item) => item._id === formData.eventId);
-      const existing = JSON.parse(
-        localStorage.getItem(VENDOR_APPLICATIONS_STORAGE_KEY) || "[]",
-      );
-
-      const payload = {
-        id: `${formData.eventId}-${Date.now()}`,
-        eventId: formData.eventId,
-        status: "Approved",
-        appliedDate: new Date().toISOString(),
-        eventDate: selectedEvent?.startDate || null,
-        eventName: selectedEvent?.title || "Untitled Event",
+      await applyToVendorEvent(formData.eventId, {
         stallName: formData.stallName.trim(),
         offerings: formData.offerings.trim(),
         notes: formData.notes.trim(),
-      };
+      });
 
-      localStorage.setItem(
-        VENDOR_APPLICATIONS_STORAGE_KEY,
-        JSON.stringify([payload, ...existing]),
-      );
-
-      setSubmitMessage("Event application submitted successfully.");
+      setSubmitMessage("Event application submitted. Waiting for planner approval.");
       closeModal();
-    } catch (localError) {
-      setSubmitMessage(localError.message || "Failed to submit application.");
+    } catch (err) {
+      setSubmitMessage(err.message || "Failed to submit application.");
       setIsSubmitting(false);
     }
   };
@@ -138,8 +105,16 @@ export default function VendorApplyEvents() {
         </div>
       )}
 
+      {error && (
+        <div className="mb-4 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-700">
+          {error}
+        </div>
+      )}
+
       <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
-        {activeEvents.length === 0 ? (
+        {isLoading ? (
+          <p className="text-sm text-slate-500">Loading available events...</p>
+        ) : activeEvents.length === 0 ? (
           <p className="text-sm text-slate-500">No active events available.</p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">

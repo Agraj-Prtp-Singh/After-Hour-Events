@@ -1,25 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { getMyVendorApplications } from "../api/vendor";
 
-const VENDOR_APPLICATIONS_STORAGE_KEY = "vendorApplicationsDummy";
-
-const defaultApplications = [
-  {
-    id: "app-1",
-    status: "Approved",
-    appliedDate: "2026-04-10",
-    eventDate: "2026-05-18",
-    eventName: "Kathmandu Food Carnival",
-    stallName: "Himalayan Organic Bites",
-  },
-  {
-    id: "app-2",
-    status: "Approved",
-    appliedDate: "2026-04-15",
-    eventDate: "2026-06-01",
-    eventName: "Summer Music Fest",
-    stallName: "Fresh Sip Bar",
-  },
-];
+const statusStyles = {
+  pending: "bg-amber-100 text-amber-700",
+  approved: "bg-emerald-100 text-emerald-700",
+  rejected: "bg-red-100 text-red-700",
+};
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -29,11 +15,19 @@ const formatDate = (value) => {
 };
 
 export default function VendorDashboard() {
-  const rows = useMemo(() => {
-    const saved = JSON.parse(
-      localStorage.getItem(VENDOR_APPLICATIONS_STORAGE_KEY) || "[]",
-    );
-    return saved.length > 0 ? saved : defaultApplications;
+  const [rows, setRows] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getMyVendorApplications()
+      .then((data) => {
+        setRows(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        setError(err.message || "Could not load vendor applications.");
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
@@ -51,7 +45,15 @@ export default function VendorDashboard() {
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
-        {rows.length === 0 ? (
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-700">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <p className="text-sm text-slate-500">Loading applications...</p>
+        ) : rows.length === 0 ? (
           <p className="text-sm text-slate-500">
             No event applications found yet.
           </p>
@@ -69,20 +71,24 @@ export default function VendorDashboard() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100">
+                  <tr key={row._id} className="border-b border-slate-100">
                     <td className="px-3 py-3">
-                      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusStyles[row.status] || statusStyles.pending
+                        }`}
+                      >
                         {row.status}
                       </span>
                     </td>
                     <td className="px-3 py-3 text-slate-700">
-                      {formatDate(row.appliedDate)}
+                      {formatDate(row.createdAt)}
                     </td>
                     <td className="px-3 py-3 text-slate-700">
-                      {formatDate(row.eventDate)}
+                      {formatDate(row.eventId?.startDate)}
                     </td>
                     <td className="px-3 py-3 font-medium text-slate-900">
-                      {row.eventName}
+                      {row.eventId?.title || "Untitled Event"}
                     </td>
                     <td className="px-3 py-3 text-slate-700">
                       {row.stallName}

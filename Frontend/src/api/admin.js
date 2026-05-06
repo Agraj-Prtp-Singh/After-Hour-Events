@@ -37,7 +37,7 @@ export const getAdminEvents = async (params = {}) => {
 
 export const updateAdminEvent = async (eventId, eventData) => {
   try {
-    const response = await axios.put(
+    const response = await axios.patch(
       `${BASE_URL}/events/${eventId}`,
       eventData,
       getAuthHeaders()
@@ -48,6 +48,26 @@ export const updateAdminEvent = async (eventId, eventData) => {
       error.response?.data?.message ||
         error.response?.data?.error ||
         "Failed to update event"
+    );
+  }
+};
+
+export const reviewAdminEvent = async (eventId, decision, denialReason = "") => {
+  try {
+    const response = await axios.patch(
+      `${BASE_URL}/events/${eventId}/review`,
+      {
+        decision,
+        ...(denialReason ? { denialReason } : {}),
+      },
+      getAuthHeaders()
+    );
+    return normalizeResponse(response);
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to review event"
     );
   }
 };

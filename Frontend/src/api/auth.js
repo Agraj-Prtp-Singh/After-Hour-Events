@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api/v1/auth";
+const BASE_URL = "http://localhost:5000/api/v1";
+const AUTH_URL = `${BASE_URL}/auth`;
+
 const unwrapResponse = (response) => response.data?.data ?? response.data;
 const getApiErrorMessage = (error, fallbackMessage) => {
   if (error.response) {
@@ -21,7 +23,7 @@ const getApiErrorMessage = (error, fallbackMessage) => {
 export const loginUser = async ({ email, password }) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/login`,
+      `${AUTH_URL}/login`,
       { email, password },
       {
         headers: {
@@ -34,10 +36,6 @@ export const loginUser = async ({ email, password }) => {
     throw new Error(getApiErrorMessage(error, "Login failed"));
   }
 };
-// Base root (no /auth here)
-
-// Specific route groups
-const AUTH_URL = `${BASE_URL}/auth`;
 
 export const registerUser = async (userData) => {
   try {

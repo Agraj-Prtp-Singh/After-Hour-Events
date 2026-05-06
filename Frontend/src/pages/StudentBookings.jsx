@@ -30,6 +30,8 @@ function normalizeBooking(registration) {
       : "Time not set",
     location: event.location || "Location not set",
     status: registration.status === "cancelled" ? "Cancelled" : "Confirmed",
+    ticketCode: registration.ticketCode || "",
+    qrCodeDataUrl: registration.qrCodeDataUrl || "",
   };
 }
 
@@ -38,6 +40,7 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -156,9 +159,9 @@ export default function MyBookings() {
                       {booking.status}
                     </span>
 
-                    {booking.status === "Confirmed" && booking.eventId && (
+                    {booking.status === "Confirmed" && (
                       <button
-                        onClick={() => navigate(`/student/event/${booking.eventId}`)}
+                        onClick={() => setSelectedTicket(booking)}
                         className="flex items-center gap-1.5 text-blue-500 text-xs font-medium hover:underline cursor-pointer"
                       >
                         <QrCode size={12} />
@@ -196,6 +199,55 @@ export default function MyBookings() {
           </button>
         </div>
       </div>
+
+      {selectedTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900">Event Ticket</h3>
+            <p className="mt-1 text-sm text-gray-500">{selectedTicket.title}</p>
+
+            <div className="my-5 flex justify-center">
+              {selectedTicket.qrCodeDataUrl ? (
+                <img
+                  src={selectedTicket.qrCodeDataUrl}
+                  alt="Ticket QR code"
+                  className="h-56 w-56 rounded-xl border border-slate-200 bg-white p-2"
+                />
+              ) : (
+                <div className="flex h-56 w-56 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 text-sm text-slate-500">
+                  QR code was not generated for this older booking. Cancel and book again to issue a new QR ticket.
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Ticket Code
+            </p>
+            <p className="mt-1 font-mono text-sm font-bold text-slate-900">
+              {selectedTicket.ticketCode || "Not issued"}
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedTicket(null)}
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Close
+              </button>
+              {selectedTicket.eventId && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/student/event/${selectedTicket.eventId}`)}
+                  className="flex-1 rounded-xl bg-[#0b0220] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#19024d]"
+                >
+                  Event Details
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

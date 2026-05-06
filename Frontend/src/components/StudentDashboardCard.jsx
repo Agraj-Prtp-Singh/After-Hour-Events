@@ -10,7 +10,7 @@ import {
   Star,
   Loader2,
 } from "lucide-react";
-import { getStudentStats, getStudentBookings } from "../api/student";
+import { getStudentStats, getStudentBookings, getEvents } from "../api/student";
 
 const EMPTY_STATS = {
   eventsAttended: 0,
@@ -56,6 +56,24 @@ function normalizeBooking(registration) {
       : "Time not set",
     location: event.location || "Location not set",
     status: registration.status === "cancelled" ? "Cancelled" : "Confirmed",
+  };
+}
+
+function normalizeEvent(event) {
+  const startDate = event.startDate ? new Date(event.startDate) : null;
+
+  return {
+    id: event._id || event.id,
+    title: event.title || "Untitled Event",
+    category: event.category || "Other",
+    location: event.location || "Location not set",
+    date: startDate
+      ? startDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "Date not set",
   };
 }
 
@@ -116,13 +134,46 @@ function BookingRow({ event }) {
   );
 }
 
+function EventCard({ event, onOpen }) {
+  return (
+    <article className="rounded-[1.5rem] border border-black/5 bg-[#F4F7FB] p-4 transition-shadow hover:shadow-md">
+      <div className="mb-3 flex h-24 items-center justify-center rounded-2xl bg-[#0b0220]">
+        <CalendarDays size={30} className="text-white/20" />
+      </div>
+      <span className="inline-flex rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+        {event.category}
+      </span>
+      <h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900">
+        {event.title}
+      </h3>
+      <div className="mt-2 space-y-1 text-xs text-gray-500">
+        <p className="flex items-center gap-1">
+          <CalendarDays size={11} /> {event.date}
+        </p>
+        <p className="flex items-center gap-1">
+          <MapPin size={11} /> {event.location}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onOpen(event.id)}
+        className="mt-4 w-full rounded-xl border border-black/10 bg-white py-2.5 text-xs font-bold text-gray-700 transition hover:bg-[#0b0220] hover:text-white"
+      >
+        View Details
+      </button>
+    </article>
+  );
+}
+
 export default function StudentDashboardCard() {
   const navigate = useNavigate();
 
   const [stats, setStats] = useState(EMPTY_STATS);
   const [bookings, setBookings] = useState([]);
+  const [availableEvents, setAvailableEvents] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -148,6 +199,16 @@ export default function StudentDashboardCard() {
         setError((current) => current || err.message || "Failed to load bookings.");
       })
       .finally(() => setLoadingBookings(false));
+
+    getEvents()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setAvailableEvents(list.map(normalizeEvent).slice(0, 3));
+      })
+      .catch((err) => {
+        setError((current) => current || err.message || "Failed to load events.");
+      })
+      .finally(() => setLoadingEvents(false));
   }, []);
 
   const statItems = [
@@ -194,6 +255,49 @@ export default function StudentDashboardCard() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Discover
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              Available Events
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Recently created events ready for students.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/student/browse")}
+            className="inline-flex items-center gap-1 text-blue-500 text-sm font-medium hover:underline cursor-pointer"
+          >
+            Browse all <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {loadingEvents ? (
+          <div className="flex items-center justify-center py-16 text-slate-400 gap-2">
+            <Loader2 size={20} className="animate-spin" />
+            <span className="text-sm">Loading events...</span>
+          </div>
+        ) : availableEvents.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-12 text-center text-sm text-slate-400">
+            No available events found yet.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {availableEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onOpen={(eventId) => navigate(`/student/event/${eventId}`)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">

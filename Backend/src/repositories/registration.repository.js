@@ -16,6 +16,10 @@ class RegistrationRepository {
     return Registration.findOne(filter);
   }
 
+  findByTicketCode(ticketCode) {
+    return Registration.findOne({ ticketCode });
+  }
+
   countByEvent(eventId) {
     return Registration.countDocuments(this.#registeredFilter({ eventId }));
   }
@@ -27,7 +31,8 @@ class RegistrationRepository {
   listByUser(userId) {
     return Registration.find(this.#registeredFilter({ userId }))
       .sort({ createdAt: -1 })
-      .populate('eventId');
+      .populate('eventId')
+      .populate('userId', 'fullName phone email role');
   }
 
   listByEvent(eventId) {

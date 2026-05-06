@@ -13,6 +13,16 @@ const schema = new mongoose.Schema({
     type: String,
     enum: ['registered', 'cancelled'],
     default: 'registered'
+  },
+  ticketCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true
+  },
+  qrCodeDataUrl: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 

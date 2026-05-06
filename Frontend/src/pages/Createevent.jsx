@@ -63,6 +63,7 @@ export default function CreateEvent() {
           ticketPrice: String(event.ticketPrice ?? ""),
           capacity: String(event.capacity ?? ""),
         });
+        setOpenToVendors(event.openToVendors ?? true);
       })
       .catch((err) => {
         setError(err.message || "Failed to load event details.");
@@ -107,6 +108,7 @@ export default function CreateEvent() {
         description: form.description || undefined,
         ticketPrice: form.ticketPrice ? Number(form.ticketPrice) : 0,
         capacity: form.capacity ? Number(form.capacity) : 0,
+        openToVendors,
       };
 
       if (bannerFile) {

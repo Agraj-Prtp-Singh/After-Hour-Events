@@ -13,7 +13,7 @@ class EventService {
     const event = await eventRepository.create({
       ...payload,
       createdBy: user.id,
-      isPublished: isAdmin,
+      isPublished: true,
       approvalStatus: isAdmin ? EVENT_APPROVAL_STATUS.APPROVED : EVENT_APPROVAL_STATUS.PENDING,
       reviewedBy: isAdmin ? user.id : null,
       reviewedAt: isAdmin ? new Date() : null,
@@ -25,7 +25,7 @@ class EventService {
 
   async listEvents(query) {
     const pagination = sanitizePagination(query);
-    const filter = { isPublished: true };
+    const filter = { approvalStatus: { $ne: EVENT_APPROVAL_STATUS.DENIED } };
 
     if (query.search && query.search.trim()) {
       filter.$text = { $search: query.search.trim() };
@@ -115,7 +115,7 @@ class EventService {
   async getEventById(eventId) {
     const event = await eventRepository.findByIdWithCreator(eventId);
 
-    if (!event || !event.isPublished) {
+    if (!event || event.approvalStatus === EVENT_APPROVAL_STATUS.DENIED) {
       throw new AppError('Event not found', HTTP_STATUS.NOT_FOUND);
     }
 

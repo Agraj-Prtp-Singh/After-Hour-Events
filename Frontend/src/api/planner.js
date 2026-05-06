@@ -138,3 +138,36 @@ export const getAllAttendees = async () => {
     );
   }
 };
+
+export const getVendorApplications = async () => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/planner/vendor-applications`,
+      getAuthHeaders()
+    );
+    return normalizeResponse(response);
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to fetch vendor applications"
+    );
+  }
+};
+
+export const reviewVendorApplication = async (applicationId, decision) => {
+  try {
+    const response = await axios.patch(
+      `${BASE_URL}/planner/vendor-applications/${applicationId}/review`,
+      { decision },
+      getAuthHeaders()
+    );
+    return normalizeResponse(response);
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to review vendor application"
+    );
+  }
+};

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   deleteAdminEvent,
   getAdminEvents,
+  reviewAdminEvent,
   updateAdminEvent,
 } from "../api/admin";
 import AdminEventsHero from "./AdminEventsHero";
@@ -46,7 +47,12 @@ const normalizeEvent = (event) => ({
   capacity: String(event.capacity ?? 0),
   created: formatDisplayDate(event.createdAt),
   verified: Boolean(event.isPublished),
-  status: event.isPublished ? "Approved" : "Rejected",
+  status:
+    event.approvalStatus === "approved"
+      ? "Approved"
+      : event.approvalStatus === "denied"
+      ? "Rejected"
+      : "Pending",
   raw: event,
 });
 
@@ -144,7 +150,7 @@ export default function AdminEventCards() {
     setError("");
 
     try {
-      await updateAdminEvent(id, { isPublished: true });
+      await reviewAdminEvent(id, "approved");
       fetchEvents();
     } catch (err) {
       setError(err.message || "Failed to approve event.");
@@ -158,7 +164,7 @@ export default function AdminEventCards() {
     setError("");
 
     try {
-      await updateAdminEvent(id, { isPublished: false });
+      await reviewAdminEvent(id, "denied", "Rejected by admin");
       setEvents((currentEvents) =>
         currentEvents.filter((event) => event.id !== id)
       );

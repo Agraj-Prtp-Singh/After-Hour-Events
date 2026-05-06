@@ -19,6 +19,7 @@ import StudentEventDetail from "./pages/StudentEventDetail";
 import PlannerDashboard from "./pages/Plannerdashboard";
 import CreateEvent from "./pages/Createevent";
 import Attendees from "./pages/Attendees";
+import PlannerVendorApplications from "./pages/PlannerVendorApplications";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorApplyEvents from "./pages/VendorApplyEvents";
 import VendorSettings from "./pages/VendorSettings";
@@ -220,7 +221,7 @@ function App() {
       <Route
         path="/planner/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["admin", "vendor", "event_planner"]}>
+          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
             <PlannerLayout>
               <PlannerDashboard />
             </PlannerLayout>
@@ -230,7 +231,7 @@ function App() {
       <Route
         path="/planner/events"
         element={
-          <ProtectedRoute allowedRoles={["admin", "vendor", "event_planner"]}>
+          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
             <PlannerLayout>
               <CreateEvent />
             </PlannerLayout>
@@ -240,9 +241,19 @@ function App() {
       <Route
         path="/planner/attendees"
         element={
-          <ProtectedRoute allowedRoles={["admin", "vendor", "event_planner"]}>
+          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
             <PlannerLayout>
               <Attendees />
+            </PlannerLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/planner/apps"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+            <PlannerLayout>
+              <PlannerVendorApplications />
             </PlannerLayout>
           </ProtectedRoute>
         }

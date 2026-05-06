@@ -6,7 +6,7 @@ const STORAGE_KEYS = {
 const ROLE_HOME_ROUTES = {
   admin: "/admin/dashboard",
   student: "/student-dashboard",
-  vendor: "/planner/dashboard",
+  vendor: "/vendor/dashboard",
   planner: "/planner/dashboard",
   event_planner: "/planner/dashboard",
   organizer: "/planner/dashboard",
@@ -52,6 +52,7 @@ export function normalizeRole(role) {
 
   if (
     normalized === "event_planner" ||
+    normalized === "event-planner" ||
     normalized === "planner" ||
     normalized === "organizer"
   ) {

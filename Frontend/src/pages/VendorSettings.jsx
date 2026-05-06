@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import { Eye, EyeOff, LogOut, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { clearAuthSession, getStoredUser } from "../utils/auth";
 
 const SETTINGS_STORAGE_KEY = "adminSettings";
 const PASSWORD_STORAGE_KEY = "adminPassword";
 
 function getInitialSettings() {
   const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
-  const savedUser = localStorage.getItem("user");
-
-  const user = savedUser ? JSON.parse(savedUser) : {};
+  const user = getStoredUser() || {};
   const parsedSettings = savedSettings ? JSON.parse(savedSettings) : {};
 
   return {
@@ -70,9 +69,9 @@ export default function VendorSettings() {
 
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(profileData));
 
-    const existingUser = localStorage.getItem("user");
-    const parsedUser = existingUser ? JSON.parse(existingUser) : {};
-    localStorage.setItem("user", JSON.stringify({ ...parsedUser, ...profileData }));
+    const nextUser = { ...(getStoredUser() || {}), ...profileData };
+    localStorage.setItem("user", JSON.stringify(nextUser));
+    sessionStorage.setItem("user", JSON.stringify(nextUser));
 
     setSavedSettings(profileData);
     setSettings(profileData);
@@ -133,9 +132,8 @@ export default function VendorSettings() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+    clearAuthSession();
+    navigate("/", { replace: true });
   };
 
   return (

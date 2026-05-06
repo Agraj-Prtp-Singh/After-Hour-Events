@@ -1,6 +1,7 @@
 const express = require('express');
 const plannerController = require('../controllers/planner.controller');
 const eventController = require('../controllers/event.controller');
+const vendorApplicationController = require('../controllers/vendorApplication.controller');
 const { authMiddleware, authorize } = require('../middlewares/auth.middleware');
 const validateObjectId = require('../middlewares/validateObjectId.middleware');
 const { ROLES } = require('../constants/roles');
@@ -15,5 +16,11 @@ router.put('/events/:id', validateObjectId('id'), eventController.updateEvent);
 router.delete('/events/:id', validateObjectId('id'), eventController.deleteEvent);
 router.get('/events/:id/attendees', validateObjectId('id'), eventController.listEventRegistrations);
 router.get('/attendees', plannerController.getAllAttendees);
+router.get('/vendor-applications', vendorApplicationController.listPlannerApplications);
+router.patch(
+  '/vendor-applications/:applicationId/review',
+  validateObjectId('applicationId'),
+  vendorApplicationController.reviewApplication
+);
 
 module.exports = router;

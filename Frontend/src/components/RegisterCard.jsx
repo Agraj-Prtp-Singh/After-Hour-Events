@@ -194,8 +194,7 @@ export default function RegisterCard() {
                 Select your role
               </option>
               <option value="student">Student</option>
-              <option value="event-planner">Event Planner</option>
-              <option value="event-planner">Event-Planner</option>
+              <option value="event_planner">Event Planner</option>
               <option value="organizer">Organizer</option>
               <option value="vendor">Vendor</option>
             </select>

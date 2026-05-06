@@ -64,6 +64,10 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    openToVendors: {
+      type: Boolean,
+      default: true
+    },
     approvalStatus: {
       type: String,
       enum: Object.values(EVENT_APPROVAL_STATUS),
