@@ -1,6 +1,6 @@
 const AppError = require('../utils/appError');
 const HTTP_STATUS = require('../constants/httpStatus');
-const { normalizeRole, listAcceptedRoleInputs } = require('../constants/roles');
+const { normalizeRole, listAcceptedRoleInputs, ROLES } = require('../constants/roles');
 
 function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -37,6 +37,24 @@ function validateRegisterPayload(payload) {
       );
     } else {
       payload.role = normalizedRole;
+    }
+  }
+
+  if (payload.role === ROLES.VENDOR) {
+    if (payload.businessName !== undefined && String(payload.businessName).trim().length > 160) {
+      errors.push('businessName must not exceed 160 characters');
+    }
+
+    if (payload.businessType !== undefined && String(payload.businessType).trim().length > 120) {
+      errors.push('businessType must not exceed 120 characters');
+    }
+
+    if (payload.phoneNumber !== undefined && !isValidPhone(String(payload.phoneNumber))) {
+      errors.push('phoneNumber must be valid (10-15 digits, optional + prefix)');
+    }
+
+    if (payload.description !== undefined && String(payload.description).trim().length > 1000) {
+      errors.push('description must not exceed 1000 characters');
     }
   }
 

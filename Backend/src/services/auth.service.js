@@ -24,7 +24,12 @@ class AuthService {
       phone: payload.phone,
       email: payload.email.toLowerCase(),
       passwordHash,
-      role
+      role,
+      businessName: payload.businessName,
+      businessType: payload.businessType,
+      phoneNumber: payload.phoneNumber,
+      description: payload.description,
+      verificationStatus: payload.verificationStatus
     });
 
     const token = this.#buildToken(user);

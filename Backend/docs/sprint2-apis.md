@@ -84,6 +84,69 @@ Use this endpoint to verify OpenAI integration:
 - If response `data.source` is `openai`, integration is working.
 - If response `data.source` is `fallback`, OpenAI key/config is missing or request failed.
 
+## 4) Vendor APIs
+
+### GET `/vendor/events`
+Purpose: List published events available for vendors.
+Auth: Bearer token required (`vendor`)
+Query (optional): `search`
+Response: `200 OK`
+
+### POST `/vendor/apply/:eventId`
+Purpose: Submit vendor application to an event.
+Auth: Bearer token required (`vendor`)
+Body (optional):
+```json
+{
+  "message": "We provide sound system and stage setup."
+}
+```
+Response: `201 Created`
+Notes:
+- Prevents duplicate applications for same vendor+event.
+- Returns `409 Conflict` if vendor already applied.
+
+### GET `/vendor/applications`
+Purpose: List current vendor's applications.
+Auth: Bearer token required (`vendor`)
+Response: `200 OK`
+
+### GET `/vendor/profile`
+Purpose: Fetch current vendor profile.
+Auth: Bearer token required (`vendor`)
+Response: `200 OK`
+
+## 5) Planner Vendor Review APIs
+
+### GET `/planner/vendor-applications`
+Purpose: List vendor applications for planner-owned events.
+Auth: Bearer token required (`event_planner` or `admin`)
+Query (optional): `status` (`pending`, `approved`, `rejected`)
+Response: `200 OK`
+
+### PATCH `/planner/vendor-applications/:applicationId/review`
+Purpose: Approve or reject vendor application.
+Auth: Bearer token required (`event_planner` owner of event or `admin`)
+Body (approve):
+```json
+{
+  "decision": "approved"
+}
+```
+Body (reject):
+```json
+{
+  "decision": "rejected",
+  "rejectionReason": "Vendor slots are full for this category."
+}
+```
+Response: `200 OK`
+Notes:
+- `decision` must be `approved` or `rejected`.
+- `rejectionReason` is required when `decision` is `rejected`.
+- Approval enforces event `vendorLimit`; returns `409 Conflict` if limit reached.
+- Approval/rejection creates vendor notification records.
+
 ## Standard Error Response
 ```json
 {

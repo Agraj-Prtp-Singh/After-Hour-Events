@@ -5,6 +5,7 @@ const registrationRoutes = require('./registration.routes');
 const chatbotRoutes = require('./chatbot.routes');
 const studentRoutes = require('./student.routes');
 const plannerRoutes = require('./planner.routes');
+const vendorRoutes = require('./vendor.routes');
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use('/registrations', registrationRoutes);
 router.use('/chatbot', chatbotRoutes);
 router.use('/student', studentRoutes);
 router.use('/planner', plannerRoutes);
+router.use('/vendor', vendorRoutes);
 
 module.exports = router;
