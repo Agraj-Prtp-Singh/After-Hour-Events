@@ -1,16 +1,42 @@
-const service = require('../services/registration.service');
+const registrationService = require('../services/registration.service');
+const asyncHandler = require('../utils/asyncHandler');
+const HTTP_STATUS = require('../constants/httpStatus');
 
-exports.register = async (req, res) => {
-  const result = await service.register(req.params.eventId, req.user);
-  res.json({ success: true, data: result });
-};
+const registerForEvent = asyncHandler(async (req, res) => {
+  const eventId = req.params.id || req.params.eventId;
+  const registration = await registrationService.registerForEvent(eventId, req.user.id);
 
-exports.cancel = async (req, res) => {
-  await service.cancel(req.params.eventId, req.user);
-  res.json({ success: true, message: 'Cancelled' });
-};
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    message: 'Event registered successfully',
+    data: registration
+  });
+});
 
-exports.getMyRegistrations = async (req, res) => {
-  const data = await service.getMyRegistrations(req.user.id);
-  res.json({ success: true, data });
+const cancelMyRegistration = asyncHandler(async (req, res) => {
+  const eventId = req.params.id || req.params.eventId;
+  const registration = await registrationService.cancelRegistration(eventId, req.user.id);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Registration cancelled successfully',
+    data: registration
+  });
+});
+
+const getMyRegistrations = asyncHandler(async (req, res) => {
+  const registrations = await registrationService.listMyRegistrations(req.user.id);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: registrations
+  });
+});
+
+module.exports = {
+  registerForEvent,
+  cancelMyRegistration,
+  getMyRegistrations,
+  register: registerForEvent,
+  cancel: cancelMyRegistration
 };

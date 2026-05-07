@@ -45,7 +45,6 @@ function EventCard({ event, styleIndex }) {
         <span className={`rounded-full px-3 py-1 text-sm ${style.chip}`}>
           {event.category}
         </span>
-
         <h2 className="text-lg font-semibold text-slate-900">{event.title}</h2>
 
         <p className="text-sm text-slate-600">

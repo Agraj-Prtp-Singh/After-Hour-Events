@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { sendOtp, verifyOtp } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { getHomeRouteForRole, persistAuthSession } from "../utils/auth";
 
 export default function OTPCard() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -55,12 +56,10 @@ export default function OTPCard() {
 
     try {
       const res = await verifyOtp({ email, otp: code });
-      console.log(res);
-
-      localStorage.setItem("token", res.data?.token || "");
-      localStorage.setItem("user", JSON.stringify(res.data?.user || {}));
+      persistAuthSession(res, true);
 
       alert("OTP Verified!!!");
+      navigate(getHomeRouteForRole(res.user?.role), { replace: true });
     } catch (err) {
       setError(err.message || "Invalid OTP");
     } finally {

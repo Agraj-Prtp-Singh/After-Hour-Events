@@ -8,6 +8,7 @@ import {
   Pencil,
   Save,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
 
@@ -48,10 +49,10 @@ function ActionButton({
 }) {
   const variants = {
     primary: "bg-[#4E7BFF] text-white hover:bg-[#3E68E5]",
-    success: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-    warning: "bg-amber-50 text-amber-700 hover:bg-amber-100",
     neutral:
       "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+    success: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+    warning: "bg-amber-50 text-amber-700 hover:bg-amber-100",
     danger: "bg-red-50 text-red-600 hover:bg-red-100",
   };
 
@@ -104,16 +105,29 @@ export default function AdminEventEditCard({
               </label>
 
               <FieldInput
-                label="Date"
-                type="date"
-                value={editForm.date}
-                onChange={(value) => onFieldChange("date", value)}
+                label="Start Date"
+                type="datetime-local"
+                value={editForm.startDate}
+                onChange={(value) => onFieldChange("startDate", value)}
               />
 
               <FieldInput
                 label="Location"
                 value={editForm.location}
                 onChange={(value) => onFieldChange("location", value)}
+              />
+
+              <FieldInput
+                label="Category"
+                value={editForm.category}
+                onChange={(value) => onFieldChange("category", value)}
+              />
+
+              <FieldInput
+                label="Capacity"
+                type="number"
+                value={editForm.capacity}
+                onChange={(value) => onFieldChange("capacity", value)}
               />
             </div>
           ) : (
@@ -123,25 +137,16 @@ export default function AdminEventEditCard({
                   {event.title}
                 </h3>
 
-                {event.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <CheckCircle2 size={14} />
-                    Approved
-                  </span>
-                )}
-
                 <span className="inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {event.status}
+                  {event.category || "General"}
                 </span>
               </div>
 
-              <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
                 <InfoPill icon={CalendarDays} label="Date" value={event.date} />
-                <InfoPill
-                  icon={MapPin}
-                  label="Location"
-                  value={event.location}
-                />
+                <InfoPill icon={MapPin} label="Location" value={event.location} />
+                <InfoPill icon={Users} label="Capacity" value={event.capacity} />
+                <InfoPill icon={CalendarDays} label="Created" value={event.created} />
               </div>
 
               <div

@@ -29,7 +29,7 @@ export default function Navbar({ variant = "default" }) {
 
       {variant === "getStarted" && (
         <button
-          onClick={() => navigate("/signin")}
+          onClick={() => navigate("/login")}
           className="px-5 py-2 rounded-full bg-white text-black font-semibold hover:bg-gray-200 transition"
         >
           Get started

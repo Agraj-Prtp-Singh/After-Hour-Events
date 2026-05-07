@@ -21,6 +21,11 @@ const eventSchema = new mongoose.Schema(
       trim: true,
       maxlength: 2000
     },
+    category: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     location: {
       type: String,
       required: true,
@@ -39,6 +44,11 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1
+    },
+    ticketPrice: {
+      type: Number,
+      default: 0,
+      min: 0
     },
     tags: {
       type: [String],

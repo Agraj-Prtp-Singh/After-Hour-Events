@@ -1,24 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  deleteEvent,
-  getEvents,
-  updateEvent,
-} from "../api/event";
+  deleteAdminEvent,
+  getAdminEvents,
+  updateAdminEvent,
+} from "../api/admin";
 import AdminEventsHero from "./AdminEventsHero";
 import AdminEventsStats from "./AdminEventsStats";
 import AdminEventEditCard from "./AdminEventEditCard";
 
 const emptyEditState = {
   title: "",
-  date: "",
+  startDate: "",
   location: "",
+  category: "",
+  capacity: "",
 };
 
 const formatDisplayDate = (value) => {
   if (!value) return "TBD";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "TBD";
-
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -26,12 +27,28 @@ const formatDisplayDate = (value) => {
   });
 };
 
-const toDateInputValue = (value) => {
+const formatDateTimeLocal = (value) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
+  const offset = date.getTimezoneOffset();
+  const normalized = new Date(date.getTime() - offset * 60000);
+  return normalized.toISOString().slice(0, 16);
 };
+
+const normalizeEvent = (event) => ({
+  id: event._id || event.id,
+  title: event.title || "Untitled Event",
+  startDate: event.startDate || "",
+  date: formatDisplayDate(event.startDate),
+  location: event.location || "Location not set",
+  category: event.category || "General",
+  capacity: String(event.capacity ?? 0),
+  created: formatDisplayDate(event.createdAt),
+  verified: Boolean(event.isPublished),
+  status: event.isPublished ? "Approved" : "Rejected",
+  raw: event,
+});
 
 export default function AdminEventCards() {
   const [events, setEvents] = useState([]);
@@ -39,58 +56,50 @@ export default function AdminEventCards() {
   const [editForm, setEditForm] = useState(emptyEditState);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [activeActionId, setActiveActionId] = useState(null);
   const [rejectedEventsCount, setRejectedEventsCount] = useState(0);
 
-  const loadEvents = async () => {
+  const fetchEvents = () => {
     setLoading(true);
     setError("");
 
-    try {
-      const response = await getEvents({ page: 1, limit: 100 });
-      const items = response?.data?.items || [];
-
-      const mappedEvents = items.map((event) => ({
-        id: event._id,
-        title: event.title || "Untitled Event",
-        location: event.location || "TBD",
-        date: formatDisplayDate(event.startDate),
-        dateInput: toDateInputValue(event.startDate),
-        startDate: event.startDate,
-        endDate: event.endDate,
-        description: event.description || "",
-        verified: Boolean(event.isPublished),
-        status: event.isPublished ? "Approved" : "Rejected",
-      }));
-
-      setEvents(mappedEvents);
-    } catch (err) {
-      setError(err.message || "Failed to load events");
-    } finally {
-      setLoading(false);
-    }
+    getAdminEvents({ limit: 100 })
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setEvents(list.map(normalizeEvent));
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to load events.");
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    loadEvents();
+    fetchEvents();
   }, []);
+
+  const now = Date.now();
 
   const approvedEvents = useMemo(
     () => events.filter((event) => event.status === "Approved").length,
-    [events],
+    [events]
   );
 
   const totalEvents = useMemo(
     () => events.length + rejectedEventsCount,
-    [events.length, rejectedEventsCount],
+    [events.length, rejectedEventsCount]
   );
 
   const handleEditStart = (event) => {
     setEditingId(event.id);
     setEditForm({
       title: event.title,
-      date: event.dateInput,
+      startDate: formatDateTimeLocal(event.startDate),
       location: event.location,
+      category: event.category,
+      capacity: event.capacity,
     });
   };
 
@@ -100,37 +109,33 @@ export default function AdminEventCards() {
   };
 
   const handleFieldChange = (field, value) => {
-    setEditForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }));
+    setEditForm((currentForm) => ({ ...currentForm, [field]: value }));
   };
 
   const handleSave = async (id) => {
-    const targetEvent = events.find((event) => event.id === id);
-    if (!targetEvent) return;
-
-    setActiveActionId(id);
+    setSaving(true);
     setError("");
 
-    const payload = {
-      title: editForm.title.trim(),
-      location: editForm.location.trim(),
-    };
-
-    if (editForm.date) {
-      payload.startDate = new Date(editForm.date).toISOString();
-    }
-
     try {
-      await updateEvent(id, payload);
-      await loadEvents();
+      const updated = await updateAdminEvent(id, {
+        title: editForm.title,
+        startDate: editForm.startDate || undefined,
+        location: editForm.location,
+        category: editForm.category || undefined,
+        capacity: editForm.capacity ? Number(editForm.capacity) : 0,
+      });
+
+      setEvents((currentEvents) =>
+        currentEvents.map((event) =>
+          event.id === id ? normalizeEvent(updated) : event
+        )
+      );
       setEditingId(null);
       setEditForm(emptyEditState);
     } catch (err) {
-      setError(err.message || "Failed to update event");
+      setError(err.message || "Failed to update event.");
     } finally {
-      setActiveActionId(null);
+      setSaving(false);
     }
   };
 
@@ -139,10 +144,10 @@ export default function AdminEventCards() {
     setError("");
 
     try {
-      await updateEvent(id, { isPublished: true });
-      await loadEvents();
+      await updateAdminEvent(id, { isPublished: true });
+      fetchEvents();
     } catch (err) {
-      setError(err.message || "Failed to approve event");
+      setError(err.message || "Failed to approve event.");
     } finally {
       setActiveActionId(null);
     }
@@ -153,9 +158,9 @@ export default function AdminEventCards() {
     setError("");
 
     try {
-      await updateEvent(id, { isPublished: false });
+      await updateAdminEvent(id, { isPublished: false });
       setEvents((currentEvents) =>
-        currentEvents.filter((event) => event.id !== id),
+        currentEvents.filter((event) => event.id !== id)
       );
       setRejectedEventsCount((currentCount) => currentCount + 1);
 
@@ -164,20 +169,22 @@ export default function AdminEventCards() {
         setEditForm(emptyEditState);
       }
     } catch (err) {
-      setError(err.message || "Failed to reject event");
+      setError(err.message || "Failed to reject event.");
     } finally {
       setActiveActionId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    setActiveActionId(id);
+    if (!window.confirm("Delete this event?")) return;
+
+    setDeletingId(id);
     setError("");
 
     try {
-      await deleteEvent(id);
+      await deleteAdminEvent(id);
       setEvents((currentEvents) =>
-        currentEvents.filter((event) => event.id !== id),
+        currentEvents.filter((event) => event.id !== id)
       );
 
       if (editingId === id) {
@@ -185,9 +192,9 @@ export default function AdminEventCards() {
         setEditForm(emptyEditState);
       }
     } catch (err) {
-      setError(err.message || "Failed to delete event");
+      setError(err.message || "Failed to delete event.");
     } finally {
-      setActiveActionId(null);
+      setDeletingId(null);
     }
   };
 
@@ -202,6 +209,12 @@ export default function AdminEventCards() {
           rejectedEvents={rejectedEventsCount}
           loading={loading}
         />
+
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
         <div className="rounded-[2rem] bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:p-6">
           <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -219,12 +232,6 @@ export default function AdminEventCards() {
             </span>
           </div>
 
-          {error ? (
-            <p className="mb-4 rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600">
-              {error}
-            </p>
-          ) : null}
-
           {loading ? (
             <p className="text-sm text-slate-500">Loading event list...</p>
           ) : null}
@@ -237,23 +244,27 @@ export default function AdminEventCards() {
             <div className="space-y-4">
               {events.map((event) => {
                 const isEditing = editingId === event.id;
-                const isBusy = activeActionId === event.id;
+                const isBusy =
+                  activeActionId === event.id ||
+                  deletingId === event.id ||
+                  saving;
 
                 return (
-                  <AdminEventEditCard
-                    key={event.id}
-                    event={event}
-                    isEditing={isEditing}
-                    isBusy={isBusy}
-                    editForm={editForm}
-                    onEditStart={() => handleEditStart(event)}
-                    onEditCancel={handleEditCancel}
-                    onFieldChange={handleFieldChange}
-                    onSave={() => handleSave(event.id)}
-                    onDelete={() => handleDelete(event.id)}
-                    onApprove={() => handleApprove(event.id)}
-                    onReject={() => handleReject(event.id)}
-                  />
+                  <div key={event.id} className={isBusy ? "opacity-70" : ""}>
+                    <AdminEventEditCard
+                      event={event}
+                      isEditing={isEditing}
+                      isBusy={isBusy}
+                      editForm={editForm}
+                      onEditStart={() => handleEditStart(event)}
+                      onEditCancel={handleEditCancel}
+                      onFieldChange={handleFieldChange}
+                      onSave={() => handleSave(event.id)}
+                      onDelete={() => handleDelete(event.id)}
+                      onApprove={() => handleApprove(event.id)}
+                      onReject={() => handleReject(event.id)}
+                    />
+                  </div>
                 );
               })}
             </div>

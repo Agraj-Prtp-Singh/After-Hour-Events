@@ -1,7 +1,40 @@
 import axios from "axios";
 
+const BASE_URL = "http://localhost:5000/api/v1/auth";
+const unwrapResponse = (response) => response.data?.data ?? response.data;
+const getApiErrorMessage = (error, fallbackMessage) => {
+  if (error.response) {
+    return (
+      error.response.data?.message ||
+      error.response.data?.error ||
+      fallbackMessage
+    );
+  }
+
+  if (error.request) {
+    return "Backend server is not reachable on http://localhost:5000.";
+  }
+
+  return fallbackMessage;
+};
+
+export const loginUser = async ({ email, password }) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/login`,
+      { email, password },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return unwrapResponse(response);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Login failed"));
+  }
+};
 // Base root (no /auth here)
-const BASE_URL = "http://localhost:5000/api/v1";
 
 // Specific route groups
 const AUTH_URL = `${BASE_URL}/auth`;
@@ -14,13 +47,9 @@ export const registerUser = async (userData) => {
       },
     });
 
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Registration failed",
-    );
+    throw new Error(getApiErrorMessage(error, "Registration failed"));
   }
 };
 
@@ -36,13 +65,9 @@ export const sendOtp = async (email) => {
       },
     );
 
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to send OTP",
-    );
+    throw new Error(getApiErrorMessage(error, "Failed to send OTP"));
   }
 };
 
@@ -58,12 +83,8 @@ export const verifyOtp = async ({ email, otp }) => {
       },
     );
 
-    return response.data;
+    return unwrapResponse(response);
   } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.response?.data?.error ||
-        "OTP verification failed",
-    );
+    throw new Error(getApiErrorMessage(error, "OTP verification failed"));
   }
 };

@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const controller = require('../controllers/registration.controller');
-const auth = require('../middlewares/auth.middleware');
+const { authMiddleware } = require('../middlewares/auth.middleware');
 
-router.post('/:eventId', auth, controller.register);
-router.delete('/:eventId', auth, controller.cancel);
-router.get('/me', auth, controller.getMyRegistrations);
+router.post('/:eventId', authMiddleware, controller.register);
+router.delete('/:eventId', authMiddleware, controller.cancel);
+router.get('/me', authMiddleware, controller.getMyRegistrations);
 
 module.exports = router;
