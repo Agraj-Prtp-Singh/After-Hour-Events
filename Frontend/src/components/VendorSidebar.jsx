@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
   ClipboardList,
   Settings,
+  LogOut,
 } from "lucide-react";
 import logo from "../assets/logo.png";
+import { clearAuthSession } from "../utils/auth";
 
 const navItems = [
   {
@@ -32,6 +34,12 @@ const navItems = [
 
 export default function VendorSidebar() {
   const [isOpen, setIsOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearAuthSession();
+    navigate("/", { replace: true });
+  };
 
   return (
     <aside
@@ -87,6 +95,17 @@ export default function VendorSidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        className={`group mt-4 flex items-center rounded-2xl text-white/60 transition-all duration-200 hover:bg-red-500/20 hover:text-red-400 ${
+          isOpen ? "gap-3 px-4 py-3" : "justify-center px-2 py-3"
+        }`}
+      >
+        <LogOut size={20} className="shrink-0" />
+        {isOpen && <span className="text-sm font-semibold">Logout</span>}
+      </button>
     </aside>
   );
 }
