@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import { Eye, EyeOff, LogOut, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { clearAuthSession, getStoredUser } from "../utils/auth";
 
 const SETTINGS_STORAGE_KEY = "adminSettings";
 const PASSWORD_STORAGE_KEY = "adminPassword";
 
 function getInitialSettings() {
   const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
-  const savedUser = localStorage.getItem("user");
-
-  const user = savedUser ? JSON.parse(savedUser) : {};
+  const user = getStoredUser() || {};
   const parsedSettings = savedSettings ? JSON.parse(savedSettings) : {};
 
   return {
@@ -36,7 +35,8 @@ export default function VendorSettings() {
     confirmPassword: "",
   });
 
-  const savedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY) || "admin123";
+  const savedPassword =
+    localStorage.getItem(PASSWORD_STORAGE_KEY) || "admin123";
 
   const isProfileDirty = useMemo(
     () =>
@@ -70,9 +70,9 @@ export default function VendorSettings() {
 
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(profileData));
 
-    const existingUser = localStorage.getItem("user");
-    const parsedUser = existingUser ? JSON.parse(existingUser) : {};
-    localStorage.setItem("user", JSON.stringify({ ...parsedUser, ...profileData }));
+    const nextUser = { ...(getStoredUser() || {}), ...profileData };
+    localStorage.setItem("user", JSON.stringify(nextUser));
+    sessionStorage.setItem("user", JSON.stringify(nextUser));
 
     setSavedSettings(profileData);
     setSettings(profileData);
@@ -133,9 +133,8 @@ export default function VendorSettings() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+    clearAuthSession();
+    navigate("/", { replace: true });
   };
 
   return (
@@ -208,7 +207,9 @@ export default function VendorSettings() {
               <input
                 type="date"
                 value={settings.dob}
-                onChange={(event) => handleProfileChange("dob", event.target.value)}
+                onChange={(event) =>
+                  handleProfileChange("dob", event.target.value)
+                }
                 className="input"
                 disabled={!isProfileEditing}
               />
@@ -260,7 +261,9 @@ export default function VendorSettings() {
         <div className="rounded-[2rem] bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-8">
           <div className="mb-6 flex items-start justify-between border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Security</h2>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                Security
+              </h2>
               <p className="mt-1 text-sm text-slate-500">
                 Change your password and protect your account.
               </p>
@@ -312,7 +315,10 @@ export default function VendorSettings() {
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(event) =>
-                  handlePasswordFieldChange("currentPassword", event.target.value)
+                  handlePasswordFieldChange(
+                    "currentPassword",
+                    event.target.value,
+                  )
                 }
                 className="input"
                 disabled={!isSecurityEditing}
@@ -354,7 +360,10 @@ export default function VendorSettings() {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(event) =>
-                    handlePasswordFieldChange("confirmPassword", event.target.value)
+                    handlePasswordFieldChange(
+                      "confirmPassword",
+                      event.target.value,
+                    )
                   }
                   className="input pr-10"
                   disabled={!isSecurityEditing}
