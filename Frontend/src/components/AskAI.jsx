@@ -54,7 +54,7 @@ export default function AskAI() {
     <>
       {/* Chat Popup */}
       {chatOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-50 w-[22rem] max-w-[calc(100vw-3rem)] bg-white border border-blue-100 rounded-2xl shadow-2xl shadow-blue-500/20 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-blue-500 text-white">
             <span className="font-semibold text-sm">Ask AI</span>
@@ -109,9 +109,9 @@ export default function AskAI() {
       <button
         type="button"
         onClick={() => setChatOpen(!chatOpen)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-white border border-gray-200 shadow-md rounded-full px-4 py-2 text-sm font-medium text-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-blue-600 border border-blue-500 shadow-lg shadow-blue-500/30 rounded-full px-5 py-3 text-base font-semibold text-white hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/40 transition-all cursor-pointer"
       >
-        <MessageCircleMore size={18} className="text-gray-600" />
+        <MessageCircleMore size={20} className="text-white" />
         Ask AI
       </button>
     </>

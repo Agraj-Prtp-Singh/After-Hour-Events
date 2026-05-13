@@ -64,6 +64,7 @@ function StudentLayout({ children }) {
         <main className="flex-1 overflow-y-auto">{children}</main>
         <Footer />
       </div>
+      <AskAI />
     </div>
   );
 }
@@ -137,7 +138,10 @@ function App() {
         path="/login"
         element={
           <PublicOnlyRoute>
-            <Login />
+            <>
+              <Login />
+              <AskAI />
+            </>
           </PublicOnlyRoute>
         }
       />
