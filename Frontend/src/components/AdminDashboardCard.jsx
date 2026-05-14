@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { getEvents } from "../api/event";
 
 const categoryStyles = [
@@ -38,7 +39,7 @@ function EventCard({ event, styleIndex }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <article className="w-72 flex-1 overflow-hidden rounded-3xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
+    <article className="w-full max-w-[18rem] min-h-[24rem] overflow-hidden rounded-3xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
       <div className="h-36 rounded-b-3xl bg-[#0b0220]" />
 
       <div className="space-y-2 p-4">
@@ -80,6 +81,10 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAllEvents, setShowAllEvents] = useState(false);
+  const previewCount = 3;
+  const primaryEvents = events.slice(0, previewCount);
+  const extraEvents = events.slice(previewCount);
 
   useEffect(() => {
     let isMounted = true;
@@ -159,11 +164,52 @@ export default function AdminDashboard() {
         ) : null}
 
         {!loading && !error && events.length > 0 ? (
-          <div className="flex flex-wrap gap-6">
-            {events.map((event, index) => (
-              <EventCard key={event.id} event={event} styleIndex={index} />
-            ))}
-          </div>
+          <>
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Recent Events
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Showing the latest 3 events. Expand to view more.
+                </p>
+              </div>
+              {extraEvents.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAllEvents((current) => !current)}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                >
+                  {showAllEvents ? "Hide other events" : "View other events"}
+                  {showAllEvents ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </button>
+              ) : null}
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {primaryEvents.map((event, index) => (
+                <EventCard key={event.id} event={event} styleIndex={index} />
+              ))}
+            </div>
+
+            {showAllEvents && extraEvents.length > 0 ? (
+              <div className="mt-6 overflow-y-auto rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 max-h-[44rem]">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {extraEvents.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      styleIndex={primaryEvents.length + index}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
         ) : null}
       </section>
     </div>

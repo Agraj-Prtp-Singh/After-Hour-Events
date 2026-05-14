@@ -7,6 +7,7 @@ const { ROLES } = require('../constants/roles');
 const router = express.Router();
 
 router.use(authMiddleware, authorize(ROLES.VENDOR, ROLES.ADMIN));
+
 router.get('/events', vendorController.getVendorEvents);
 router.post('/events/:eventId/apply', validateObjectId('eventId'), vendorController.applyForEvent);
 router.post('/apply/:eventId', validateObjectId('eventId'), vendorController.applyForEvent);
