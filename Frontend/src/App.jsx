@@ -23,11 +23,8 @@ import VendorDashboard from "./pages/VendorDashboard";
 import VendorApplyEvents from "./pages/VendorApplyEvents";
 import VendorSettings from "./pages/VendorSettings";
 import {
-  clearAuthSession,
   getHomeRouteForRole,
   getStoredUser,
-  isAuthenticated,
-  normalizeRole,
 } from "./utils/auth";
 
 function AdminLayout({ children }) {
@@ -80,32 +77,34 @@ function VendorLayout({ children }) {
 }
 
 function ProtectedRoute({ allowedRoles, children }) {
-  const authenticated = isAuthenticated();
-  const user = getStoredUser();
-  const role = normalizeRole(user?.role);
+  // TEMPORARY: Address-bar protection disabled so pages can be changed manually.
+  // const authenticated = isAuthenticated();
+  // const user = getStoredUser();
+  // const role = normalizeRole(user?.role);
 
-  if (!authenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!authenticated) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
-  if (allowedRoles?.length && !allowedRoles.includes(role)) {
-    return <Navigate to={getHomeRouteForRole(role)} replace />;
-  }
+  // if (allowedRoles?.length && !allowedRoles.includes(role)) {
+  //   return <Navigate to={getHomeRouteForRole(role)} replace />;
+  // }
 
   return children;
 }
 
 function PublicOnlyRoute({ children }) {
-  const user = getStoredUser();
-  const role = normalizeRole(user?.role);
+  // TEMPORARY: Public-route redirect protection disabled.
+  // const user = getStoredUser();
+  // const role = normalizeRole(user?.role);
 
-  if (isAuthenticated() && role) {
-    return <Navigate to={getHomeRouteForRole(role)} replace />;
-  }
+  // if (isAuthenticated() && role) {
+  //   return <Navigate to={getHomeRouteForRole(role)} replace />;
+  // }
 
-  if (isAuthenticated() && !role) {
-    clearAuthSession();
-  }
+  // if (isAuthenticated() && !role) {
+  //   clearAuthSession();
+  // }
 
   return children;
 }

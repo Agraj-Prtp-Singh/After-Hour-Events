@@ -33,6 +33,12 @@ class EventRepository {
     return Event.find({ createdBy: ownerId }).select('_id');
   }
 
+  listOpenToVendors() {
+    return Event.find({ openToVendors: { $ne: false } })
+      .sort({ startDate: 1, createdAt: -1 })
+      .populate('createdBy', 'fullName phone email role');
+  }
+
   async sumCapacityByOwner(ownerId) {
     const result = await Event.aggregate([
       { $match: { createdBy: ownerId } },
