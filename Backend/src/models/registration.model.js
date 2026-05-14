@@ -23,6 +23,15 @@ const schema = new mongoose.Schema({
   qrCodeDataUrl: {
     type: String,
     default: ''
+  },
+  checkedInAt: {
+    type: Date,
+    default: null
+  },
+  checkedInBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   }
 }, { timestamps: true });
 

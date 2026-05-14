@@ -20,6 +20,7 @@ import PlannerDashboard from "./pages/Plannerdashboard";
 import CreateEvent from "./pages/Createevent";
 import Attendees from "./pages/Attendees";
 import PlannerVendorApplications from "./pages/PlannerVendorApplications";
+import PlannerScanner from "./pages/PlannerScanner";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorApplyEvents from "./pages/VendorApplyEvents";
 import VendorSettings from "./pages/VendorSettings";
@@ -248,6 +249,16 @@ function App() {
           <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
             <PlannerLayout>
               <Attendees />
+            </PlannerLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/planner/scanner"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+            <PlannerLayout>
+              <PlannerScanner />
             </PlannerLayout>
           </ProtectedRoute>
         }

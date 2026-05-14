@@ -32,8 +32,19 @@ const getAllAttendees = asyncHandler(async (req, res) => {
   });
 });
 
+const checkInAttendee = asyncHandler(async (req, res) => {
+  const registration = await eventService.checkInAttendee(req.body, req.user);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Attendee checked in successfully',
+    data: registration
+  });
+});
+
 module.exports = {
   getPlannerStats,
   getPlannerEvents,
-  getAllAttendees
+  getAllAttendees,
+  checkInAttendee
 };

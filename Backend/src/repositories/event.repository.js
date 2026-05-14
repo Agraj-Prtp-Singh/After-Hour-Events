@@ -1,4 +1,5 @@
 const Event = require('../models/event.model');
+const mongoose = require('mongoose');
 
 class EventRepository {
   create(data) {
@@ -41,7 +42,7 @@ class EventRepository {
 
   async sumCapacityByOwner(ownerId) {
     const result = await Event.aggregate([
-      { $match: { createdBy: ownerId } },
+      { $match: { createdBy: new mongoose.Types.ObjectId(ownerId) } },
       { $group: { _id: null, totalCapacity: { $sum: '$capacity' } } }
     ]);
     return result[0]?.totalCapacity ?? 0;

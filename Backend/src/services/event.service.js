@@ -112,6 +112,58 @@ class EventService {
     return registrationRepository.listByEventIds(ids);
   }
 
+  #parseTicketPayload(payload) {
+    const rawValue = typeof payload === 'string' ? payload : payload?.qrPayload || payload?.ticketCode || '';
+    const value = rawValue.trim();
+
+    if (!value) {
+      throw new AppError('QR payload or ticket code is required', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    try {
+      const parsed = JSON.parse(value);
+      return {
+        ticketCode: parsed.ticketCode,
+        registrationId: parsed.registrationId,
+        eventId: parsed.eventId
+      };
+    } catch (error) {
+      return { ticketCode: value };
+    }
+  }
+
+  async checkInAttendee(payload, user) {
+    const ticket = this.#parseTicketPayload(payload);
+    const registration = ticket.registrationId
+      ? await registrationRepository.findActiveById(ticket.registrationId)
+      : await registrationRepository.findByTicketCode(ticket.ticketCode);
+
+    if (!registration) {
+      throw new AppError('Active registration not found for this ticket', HTTP_STATUS.NOT_FOUND);
+    }
+
+    if (ticket.ticketCode && registration.ticketCode !== ticket.ticketCode) {
+      throw new AppError('Ticket code does not match this registration', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (ticket.eventId && String(registration.eventId?._id || registration.eventId) !== String(ticket.eventId)) {
+      throw new AppError('Ticket event does not match this registration', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const isOwner = String(registration.eventId?.createdBy) === user.id;
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+      throw new AppError('Only the event planner can check in this attendee', HTTP_STATUS.FORBIDDEN);
+    }
+
+    if (registration.checkedInAt) {
+      return registration;
+    }
+
+    return registrationRepository.markCheckedIn(registration._id, user.id);
+  }
+
   async getEventById(eventId) {
     const event = await eventRepository.findByIdWithCreator(eventId);
 

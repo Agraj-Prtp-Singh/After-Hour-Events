@@ -17,7 +17,9 @@ class RegistrationRepository {
   }
 
   findByTicketCode(ticketCode) {
-    return Registration.findOne({ ticketCode });
+    return Registration.findOne(this.#registeredFilter({ ticketCode }))
+      .populate('eventId')
+      .populate('userId', 'fullName phone email role');
   }
 
   countByEvent(eventId) {
@@ -42,6 +44,12 @@ class RegistrationRepository {
   listByEvent(eventId) {
     return Registration.find(this.#registeredFilter({ eventId }))
       .sort({ createdAt: -1 })
+      .populate('userId', 'fullName phone email role');
+  }
+
+  findActiveById(registrationId) {
+    return Registration.findOne(this.#registeredFilter({ _id: registrationId }))
+      .populate('eventId')
       .populate('userId', 'fullName phone email role');
   }
 
@@ -70,6 +78,16 @@ class RegistrationRepository {
   listByEventIds(eventIds) {
     return Registration.find(this.#registeredFilter({ eventId: { $in: eventIds } }))
       .sort({ createdAt: -1 })
+      .populate('eventId')
+      .populate('userId', 'fullName phone email role');
+  }
+
+  markCheckedIn(registrationId, plannerId) {
+    return Registration.findByIdAndUpdate(
+      registrationId,
+      { checkedInAt: new Date(), checkedInBy: plannerId },
+      { new: true }
+    )
       .populate('eventId')
       .populate('userId', 'fullName phone email role');
   }

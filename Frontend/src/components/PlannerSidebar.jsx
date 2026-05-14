@@ -5,6 +5,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   CalendarDays,
+  ScanQrCode,
   Users,
   PuzzleIcon,
   LogOut,
@@ -16,6 +17,7 @@ const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, to: "/planner/dashboard" },
   { id: "events",    label: "My Events",  icon: CalendarDays,   to: "/planner/events"    },
   { id: "attendees", label: "Attendees",  icon: Users,          to: "/planner/attendees" },
+  { id: "scanner",   label: "Scanner",    icon: ScanQrCode,     to: "/planner/scanner"   },
   { id: "apps",      label: "Vendor Apps",icon: PuzzleIcon,     to: "/planner/apps"      },
 ];
 

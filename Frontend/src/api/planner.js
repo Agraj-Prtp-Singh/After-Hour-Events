@@ -139,6 +139,23 @@ export const getAllAttendees = async () => {
   }
 };
 
+export const checkInAttendee = async (qrPayload) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/planner/scanner/check-in`,
+      { qrPayload },
+      getAuthHeaders()
+    );
+    return normalizeResponse(response);
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to check in attendee"
+    );
+  }
+};
+
 export const getVendorApplications = async () => {
   try {
     const response = await axios.get(

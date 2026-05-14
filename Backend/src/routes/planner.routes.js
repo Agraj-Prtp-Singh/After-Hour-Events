@@ -16,6 +16,7 @@ router.put('/events/:id', validateObjectId('id'), eventController.updateEvent);
 router.delete('/events/:id', validateObjectId('id'), eventController.deleteEvent);
 router.get('/events/:id/attendees', validateObjectId('id'), eventController.listEventRegistrations);
 router.get('/attendees', plannerController.getAllAttendees);
+router.post('/scanner/check-in', plannerController.checkInAttendee);
 router.get('/vendor-applications', vendorController.getPlannerVendorApplications);
 router.patch('/vendor-applications/:applicationId/review', validateObjectId('applicationId'), vendorController.reviewVendorApplication);
 
