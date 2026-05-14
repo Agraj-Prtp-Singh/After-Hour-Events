@@ -1,5 +1,6 @@
 const eventRepository = require('../repositories/event.repository');
 const vendorApplicationRepository = require('../repositories/vendorApplication.repository');
+const emailService = require('./email.service');
 const AppError = require('../utils/appError');
 const HTTP_STATUS = require('../constants/httpStatus');
 const { ROLES } = require('../constants/roles');
@@ -81,10 +82,35 @@ class VendorApplicationService {
       throw new AppError("decision must be either 'approved' or 'rejected'", HTTP_STATUS.BAD_REQUEST);
     }
 
-    return vendorApplicationRepository.updateById(applicationId, {
+    const updatedApplication = await vendorApplicationRepository.updateById(applicationId, {
       status: normalizedDecision,
       reviewedAt: new Date()
     });
+
+    await this.#sendReviewEmail(updatedApplication, normalizedDecision);
+
+    return updatedApplication;
+  }
+
+  async #sendReviewEmail(application, decision) {
+    try {
+      const vendor = application?.vendorId;
+      const event = application?.eventId;
+
+      if (!vendor?.email) {
+        return;
+      }
+
+      await emailService.sendVendorApplicationReviewEmail({
+        toEmail: vendor.email,
+        fullName: vendor.fullName,
+        application,
+        event,
+        decision
+      });
+    } catch (error) {
+      console.warn(`Vendor application review email was not sent: ${error.message}`);
+    }
   }
 }
 
