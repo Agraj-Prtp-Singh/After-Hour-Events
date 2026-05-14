@@ -44,6 +44,11 @@ const vendorApplicationSchema = new mongoose.Schema(
       maxlength: 1000,
       default: ''
     },
+    paymentScreenshot: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     status: {
       type: String,
       enum: Object.values(VENDOR_APPLICATION_STATUS),

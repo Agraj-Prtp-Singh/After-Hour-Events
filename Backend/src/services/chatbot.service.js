@@ -63,7 +63,7 @@ class ChatbotService {
     const q = question.toLowerCase();
 
     if (q.includes('register') && q.includes('event')) {
-      return 'To register for an event, call POST /api/v1/events/:id/register with a Bearer token. To cancel, call DELETE /api/v1/events/:id/register.';
+      return 'To register for an event, simply register as a student and you can join events or register as a planner to host events!';
     }
 
     if (q.includes('login') || q.includes('sign in') || q.includes('auth')) {

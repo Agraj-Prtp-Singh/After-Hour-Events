@@ -4,6 +4,7 @@ const AppError = require('../utils/appError');
 const HTTP_STATUS = require('../constants/httpStatus');
 const { ROLES } = require('../constants/roles');
 const { VENDOR_APPLICATION_STATUS } = require('../models/vendorApplication.model');
+const { EVENT_APPROVAL_STATUS } = require('../models/event.model');
 
 class VendorApplicationService {
   async listAvailableEvents() {
@@ -11,7 +12,7 @@ class VendorApplicationService {
     const events = await eventRepository.listOpenToVendors();
 
     return events.filter((event) => {
-      if (event.approvalStatus === 'denied') return false;
+      if (!event.isPublished || event.approvalStatus !== EVENT_APPROVAL_STATUS.APPROVED) return false;
       if (!event.endDate) return true;
       return new Date(event.endDate) >= now;
     });
@@ -20,7 +21,7 @@ class VendorApplicationService {
   async apply(eventId, vendorId, payload) {
     const event = await eventRepository.findById(eventId);
 
-    if (!event) {
+    if (!event || !event.isPublished || event.approvalStatus !== EVENT_APPROVAL_STATUS.APPROVED) {
       throw new AppError('Event not found', HTTP_STATUS.NOT_FOUND);
     }
 
@@ -36,9 +37,14 @@ class VendorApplicationService {
     const stallName = String(payload.stallName || '').trim();
     const offerings = String(payload.offerings || '').trim();
     const notes = String(payload.notes || '').trim();
+    const paymentScreenshot = String(payload.paymentScreenshot || '').trim();
 
     if (!stallName || !offerings) {
       throw new AppError('stallName and offerings are required', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (Number(event.vendorSecurityDeposit || 0) > 0 && !paymentScreenshot) {
+      throw new AppError('Payment screenshot is required for this vendor application', HTTP_STATUS.BAD_REQUEST);
     }
 
     return vendorApplicationRepository.create({
@@ -47,7 +53,8 @@ class VendorApplicationService {
       plannerId: event.createdBy,
       stallName,
       offerings,
-      notes
+      notes,
+      paymentScreenshot
     });
   }
 

@@ -169,11 +169,7 @@ export default function AdminEventCards() {
 
     try {
       await reviewAdminEvent(id, "denied", "Rejected by admin");
-      setEvents((currentEvents) =>
-        currentEvents.map((event) =>
-          event.id === id ? { ...event, status: "Rejected" } : event
-        )
-      );
+      setEvents((currentEvents) => currentEvents.filter((event) => event.id !== id));
       setRejectedEventsCount((currentCount) => currentCount + 1);
 
       if (editingId === id) {

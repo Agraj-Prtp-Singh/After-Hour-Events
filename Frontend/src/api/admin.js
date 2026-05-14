@@ -21,7 +21,7 @@ const normalizeResponse = (response) => {
 
 export const getAdminEvents = async (params = {}) => {
   try {
-    const response = await axios.get(`${BASE_URL}/events`, {
+    const response = await axios.get(`${BASE_URL}/events/pending`, {
       ...getAuthHeaders(),
       params,
     });

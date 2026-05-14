@@ -58,7 +58,7 @@ class RegistrationService {
       throw new AppError('Event not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    if (event.approvalStatus === EVENT_APPROVAL_STATUS.DENIED) {
+    if (!event.isPublished || event.approvalStatus !== EVENT_APPROVAL_STATUS.APPROVED) {
       throw new AppError('Event is not available for registration', HTTP_STATUS.NOT_FOUND);
     }
 

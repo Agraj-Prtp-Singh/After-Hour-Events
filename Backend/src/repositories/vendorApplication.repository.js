@@ -3,7 +3,7 @@ const { VENDOR_APPLICATION_STATUS } = require('../models/vendorApplication.model
 
 const populateApplication = (query) =>
   query
-    .populate('eventId', 'title description location startDate endDate category createdBy openToVendors vendorLimit isPublished')
+    .populate('eventId', 'title description location startDate endDate category createdBy openToVendors vendorLimit isPublished vendorSecurityDeposit vendorPaymentQrImage')
     .populate('vendorId', 'fullName email phone role businessName businessType phoneNumber description verificationStatus')
     .populate('plannerId', 'fullName phone email role')
     .populate('reviewedBy', 'fullName email role');

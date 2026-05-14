@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { MessageCircleMore, X, Send } from "lucide-react";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
+
 export default function AskAI() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -19,25 +22,30 @@ export default function AskAI() {
     setLoading(true);
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch(`${API_BASE_URL}/chatbot/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: "You are a helpful assistant. Help users with anything they need.",
-          messages: updatedMessages.map((m) => ({
-            role: m.role,
-            content: m.text,
-          })),
+          question: userMessage.text,
         }),
       });
 
       const data = await response.json();
-      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response.";
+
+      if (!response.ok) {
+        throw new Error(data.message || "Sorry, I couldn't get a response.");
+      }
+
+      const reply = data.data?.answer || "Sorry, I couldn't get a response.";
       setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: "assistant", text: "Something went wrong. Please try again." }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: err.message || "Something went wrong. Please try again.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }

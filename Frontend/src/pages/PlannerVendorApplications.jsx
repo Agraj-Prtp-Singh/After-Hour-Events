@@ -151,6 +151,34 @@ export default function PlannerVendorApplications() {
                       {application.notes || "-"}
                     </p>
                   </div>
+
+                  <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                    <p>
+                      <span className="font-semibold text-slate-800">Security Deposit:</span>{" "}
+                      Rs. {Number(application.eventId?.vendorSecurityDeposit || 0).toLocaleString()}
+                    </p>
+                    <div>
+                      <span className="font-semibold text-slate-800">
+                        Payment Screenshot:
+                      </span>
+                      {application.paymentScreenshot ? (
+                        <a
+                          href={application.paymentScreenshot}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 block w-fit"
+                        >
+                          <img
+                            src={application.paymentScreenshot}
+                            alt="Vendor payment screenshot"
+                            className="h-36 w-52 rounded-xl border border-slate-200 object-contain p-2"
+                          />
+                        </a>
+                      ) : (
+                        <p className="mt-1">Not uploaded</p>
+                      )}
+                    </div>
+                  </div>
                 </article>
               );
             })}

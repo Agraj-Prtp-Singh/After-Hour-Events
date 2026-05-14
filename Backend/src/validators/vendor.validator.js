@@ -41,6 +41,26 @@ function validateVendorApplicationPayload(payload) {
       throw new AppError('message must not exceed 500 characters', HTTP_STATUS.BAD_REQUEST);
     }
   }
+
+  if (payload.paymentScreenshot !== undefined) {
+    if (typeof payload.paymentScreenshot !== 'string') {
+      throw new AppError('paymentScreenshot must be a string', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const screenshot = payload.paymentScreenshot.trim();
+
+    if (!screenshot) {
+      return;
+    }
+
+    if (!/^data:image\/(png|jpe?g|webp);base64,/i.test(screenshot)) {
+      throw new AppError('paymentScreenshot must be a PNG, JPG, or WEBP image data URL', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (screenshot.length > 2_500_000) {
+      throw new AppError('paymentScreenshot must be smaller than 2.5MB', HTTP_STATUS.BAD_REQUEST);
+    }
+  }
 }
 
 function validateVendorApplicationDecisionPayload(payload) {

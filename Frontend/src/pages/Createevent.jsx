@@ -12,7 +12,17 @@ const EMPTY_FORM = {
   description: "",
   ticketPrice: "",
   capacity: "",
+  vendorSecurityDeposit: "",
+  vendorPaymentQrImage: "",
 };
+
+const readImageAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const formatDateTimeLocal = (value) => {
   if (!value) {
@@ -33,6 +43,7 @@ export default function CreateEvent() {
   const [openToVendors, setOpenToVendors] = useState(true);
   const [bannerPreview, setBannerPreview] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
+  const [paymentQrPreview, setPaymentQrPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingEvent, setLoadingEvent] = useState(Boolean(editId));
   const [error, setError] = useState("");
@@ -62,7 +73,10 @@ export default function CreateEvent() {
           description: event.description || "",
           ticketPrice: String(event.ticketPrice ?? ""),
           capacity: String(event.capacity ?? ""),
+          vendorSecurityDeposit: String(event.vendorSecurityDeposit ?? ""),
+          vendorPaymentQrImage: event.vendorPaymentQrImage || "",
         });
+        setPaymentQrPreview(event.vendorPaymentQrImage || "");
         setOpenToVendors(event.openToVendors ?? true);
       })
       .catch((err) => {
@@ -82,6 +96,30 @@ export default function CreateEvent() {
     }
   };
 
+  const handlePaymentQr = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Payment QR must be an image file.");
+      return;
+    }
+
+    if (file.size > 2_500_000) {
+      setError("Payment QR image must be smaller than 2.5MB.");
+      return;
+    }
+
+    try {
+      const dataUrl = await readImageAsDataUrl(file);
+      setPaymentQrPreview(dataUrl);
+      setForm((current) => ({ ...current, vendorPaymentQrImage: dataUrl }));
+      setError("");
+    } catch (err) {
+      setError("Could not read the Payment QR image.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -92,6 +130,15 @@ export default function CreateEvent() {
 
     if (form.endDate && new Date(form.endDate) < new Date(form.startDate)) {
       setError("End date cannot be before start date.");
+      return;
+    }
+
+    if (
+      openToVendors &&
+      Number(form.vendorSecurityDeposit || 0) > 0 &&
+      !form.vendorPaymentQrImage
+    ) {
+      setError("Please upload a Payment QR for the vendor security deposit.");
       return;
     }
 
@@ -109,6 +156,11 @@ export default function CreateEvent() {
         ticketPrice: form.ticketPrice ? Number(form.ticketPrice) : 0,
         capacity: form.capacity ? Number(form.capacity) : 0,
         openToVendors,
+        vendorSecurityDeposit:
+          openToVendors && form.vendorSecurityDeposit
+            ? Number(form.vendorSecurityDeposit)
+            : 0,
+        vendorPaymentQrImage: openToVendors ? form.vendorPaymentQrImage : "",
       };
 
       if (bannerFile) {
@@ -339,6 +391,62 @@ export default function CreateEvent() {
                 </div>
               </div>
             </div>
+
+            {openToVendors && (
+              <section className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Payment QR
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Vendors will see this QR only after admin approval and must upload a payment screenshot when applying.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                      Security Deposit
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-sm outline-none shadow-sm"
+                      placeholder="e.g. 1000"
+                      value={form.vendorSecurityDeposit}
+                      onChange={handleChange("vendorSecurityDeposit")}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                      QR Image
+                    </label>
+                    <label className="cursor-pointer block">
+                      <div className="flex min-h-32 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-black/10 bg-white transition hover:border-blue-400">
+                        {paymentQrPreview ? (
+                          <img
+                            src={paymentQrPreview}
+                            alt="Payment QR preview"
+                            className="h-40 w-full object-contain p-2"
+                          />
+                        ) : (
+                          <div className="px-4 py-6 text-center text-gray-400">
+                            <p className="text-xs">Click to upload vendor payment QR</p>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePaymentQr}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </section>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-6 pb-12">
               <button

@@ -6,6 +6,10 @@ function isValidDate(value) {
   return !Number.isNaN(new Date(value).getTime());
 }
 
+function isImageDataUrl(value) {
+  return typeof value === 'string' && /^data:image\/(png|jpe?g|webp);base64,/i.test(value);
+}
+
 function validateEventPayload(payload, isUpdate = false) {
   const errors = [];
 
@@ -49,6 +53,31 @@ function validateEventPayload(payload, isUpdate = false) {
 
   if (payload.vendorLimit !== undefined && (!Number.isInteger(payload.vendorLimit) || payload.vendorLimit < 0)) {
     errors.push('vendorLimit must be a non-negative integer');
+  }
+
+  if (
+    payload.vendorSecurityDeposit !== undefined &&
+    (typeof payload.vendorSecurityDeposit !== 'number' || payload.vendorSecurityDeposit < 0)
+  ) {
+    errors.push('vendorSecurityDeposit must be a non-negative number');
+  }
+
+  if (payload.vendorPaymentQrImage !== undefined && payload.vendorPaymentQrImage !== '') {
+    if (!isImageDataUrl(payload.vendorPaymentQrImage)) {
+      errors.push('vendorPaymentQrImage must be a PNG, JPG, or WEBP image data URL');
+    }
+
+    if (String(payload.vendorPaymentQrImage).length > 2_500_000) {
+      errors.push('vendorPaymentQrImage must be smaller than 2.5MB');
+    }
+  }
+
+  if (
+    payload.openToVendors !== false &&
+    Number(payload.vendorSecurityDeposit || 0) > 0 &&
+    !payload.vendorPaymentQrImage
+  ) {
+    errors.push('vendorPaymentQrImage is required when vendorSecurityDeposit is greater than 0');
   }
 
   if (payload.tags !== undefined && !Array.isArray(payload.tags)) {

@@ -6,11 +6,13 @@ const AppError = require('../utils/appError');
 const HTTP_STATUS = require('../constants/httpStatus');
 const { ROLES } = require('../constants/roles');
 const { VENDOR_APPLICATION_STATUS } = require('../models/vendorApplication.model');
+const { EVENT_APPROVAL_STATUS } = require('../models/event.model');
 
 class VendorService {
   async getVendorEvents(query = {}) {
     const filter = {
       isPublished: true,
+      approvalStatus: EVENT_APPROVAL_STATUS.APPROVED,
       openToVendors: { $ne: false }
     };
 
@@ -24,7 +26,7 @@ class VendorService {
   async applyForEvent(eventId, vendorId, payload = {}) {
     const event = await eventRepository.findById(eventId);
 
-    if (!event || !event.isPublished) {
+    if (!event || !event.isPublished || event.approvalStatus !== EVENT_APPROVAL_STATUS.APPROVED) {
       throw new AppError('Event not found', HTTP_STATUS.NOT_FOUND);
     }
 
@@ -41,9 +43,14 @@ class VendorService {
     const offerings = String(payload.offerings || '').trim();
     const notes = String(payload.notes || '').trim();
     const message = String(payload.message || '').trim();
+    const paymentScreenshot = String(payload.paymentScreenshot || '').trim();
 
     if (!stallName || !offerings) {
       throw new AppError('stallName and offerings are required', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (Number(event.vendorSecurityDeposit || 0) > 0 && !paymentScreenshot) {
+      throw new AppError('Payment screenshot is required for this vendor application', HTTP_STATUS.BAD_REQUEST);
     }
 
     return vendorApplicationRepository.create({
@@ -53,7 +60,8 @@ class VendorService {
       stallName,
       offerings,
       notes,
-      message
+      message,
+      paymentScreenshot
     });
   }
 

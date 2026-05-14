@@ -73,6 +73,16 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    vendorSecurityDeposit: {
+      type: Number,
+      min: 0,
+      default: 0
+    },
+    vendorPaymentQrImage: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     approvalStatus: {
       type: String,
       enum: Object.values(EVENT_APPROVAL_STATUS),

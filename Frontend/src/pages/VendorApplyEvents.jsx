@@ -6,7 +6,16 @@ const defaultFormState = {
   stallName: "",
   offerings: "",
   notes: "",
+  paymentScreenshot: "",
 };
+
+const readImageAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -45,6 +54,11 @@ export default function VendorApplyEvents() {
     [events],
   );
 
+  const selectedEvent = useMemo(
+    () => activeEvents.find((event) => String(event._id) === String(formData.eventId)),
+    [activeEvents, formData.eventId],
+  );
+
   const openApplicationModal = (eventId) => {
     setFormData({
       ...defaultFormState,
@@ -64,6 +78,29 @@ export default function VendorApplyEvents() {
     setFormData((current) => ({ ...current, [field]: value }));
   };
 
+  const handleScreenshotUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setSubmitMessage("Payment screenshot must be an image file.");
+      return;
+    }
+
+    if (file.size > 2_500_000) {
+      setSubmitMessage("Payment screenshot must be smaller than 2.5MB.");
+      return;
+    }
+
+    try {
+      const dataUrl = await readImageAsDataUrl(file);
+      handleInputChange("paymentScreenshot", dataUrl);
+      setSubmitMessage("");
+    } catch (err) {
+      setSubmitMessage("Could not read payment screenshot.");
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -75,6 +112,7 @@ export default function VendorApplyEvents() {
         stallName: formData.stallName.trim(),
         offerings: formData.offerings.trim(),
         notes: formData.notes.trim(),
+        paymentScreenshot: formData.paymentScreenshot,
       });
 
       setSubmitMessage("Event application submitted. Waiting for planner approval.");
@@ -152,7 +190,7 @@ export default function VendorApplyEvents() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
           >
             <h2 className="text-2xl font-semibold text-slate-900">
               Vendor Stall Application
@@ -180,6 +218,36 @@ export default function VendorApplyEvents() {
                   ))}
                 </select>
               </label>
+
+              {selectedEvent && (
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">
+                        Security Deposit
+                      </p>
+                      <p className="mt-1 text-2xl font-bold text-blue-700">
+                        Rs. {Number(selectedEvent.vendorSecurityDeposit || 0).toLocaleString()}
+                      </p>
+                      <p className="mt-2 text-sm text-slate-600">
+                        Scan the planner&apos;s QR, pay the deposit, then upload your payment screenshot below.
+                      </p>
+                    </div>
+
+                    {selectedEvent.vendorPaymentQrImage ? (
+                      <img
+                        src={selectedEvent.vendorPaymentQrImage}
+                        alt="Planner payment QR"
+                        className="h-40 w-40 rounded-xl border border-slate-200 bg-white object-contain p-2"
+                      />
+                    ) : (
+                      <div className="flex h-40 w-40 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-3 text-center text-xs text-slate-400">
+                        No QR uploaded by planner
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <label className="block">
                 <span className="mb-1 block text-sm font-medium text-slate-700">
@@ -218,6 +286,26 @@ export default function VendorApplyEvents() {
                   className="input min-h-20"
                   placeholder="Power needs, setup details, team size, etc."
                 />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-slate-700">
+                  Payment Screenshot
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleScreenshotUpload}
+                  className="input"
+                  required={Number(selectedEvent?.vendorSecurityDeposit || 0) > 0}
+                />
+                {formData.paymentScreenshot && (
+                  <img
+                    src={formData.paymentScreenshot}
+                    alt="Payment screenshot preview"
+                    className="mt-3 h-40 w-full rounded-xl border border-slate-200 object-contain p-2"
+                  />
+                )}
               </label>
             </div>
 
