@@ -1,3 +1,5 @@
+const jwt = require('jsonwebtoken');
+const env = require('../config/env');
 const registrationRepository = require('../repositories/registration.repository');
 const eventRepository = require('../repositories/event.repository');
 const userRepository = require('../repositories/user.repository');
@@ -108,7 +110,8 @@ class RegistrationService {
   }
 
   async listMyRegistrations(userId) {
-    return registrationRepository.listByUser(userId);
+    const registrations = await registrationRepository.listByUser(userId);
+    return registrations.map((registration) => this.#serializeRegistrationWithTicket(registration, userId));
   }
 
   async getStudentStats(userId) {
@@ -129,6 +132,82 @@ class RegistrationService {
       upcomingEvents: upcoming,
       totalBookings: total
     };
+  }
+
+  async scanTicketForEventDetails(ticketToken, userId) {
+    let decodedTicket;
+
+    try {
+      decodedTicket = jwt.verify(ticketToken, env.jwtSecret);
+    } catch (error) {
+      throw new AppError('Invalid or expired ticket QR code', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (decodedTicket.typ !== 'event_ticket' || !decodedTicket.rid) {
+      throw new AppError('Invalid ticket QR code payload', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const registration = await registrationRepository.findActiveByIdAndUser(decodedTicket.rid, userId);
+    if (!registration) {
+      throw new AppError('Ticket not found for this user', HTTP_STATUS.NOT_FOUND);
+    }
+
+    return this.#serializeRegistrationWithTicket(registration, userId);
+  }
+
+  #serializeRegistrationWithTicket(registration, userId) {
+    const safeRegistration = registration.toObject
+      ? registration.toObject({ virtuals: true })
+      : registration;
+    const event = safeRegistration.eventId;
+    const eventId = event && event._id ? String(event._id) : String(safeRegistration.eventId);
+    const registrationId = String(safeRegistration._id);
+    const qrPayload = this.#buildTicketToken({
+      registrationId,
+      eventId,
+      userId,
+      eventEndDate: event && event.endDate
+    });
+
+    return {
+      ...safeRegistration,
+      ticket: {
+        type: 'event_ticket',
+        qrPayload
+      }
+    };
+  }
+
+  #buildTicketToken({ registrationId, eventId, userId, eventEndDate }) {
+    return jwt.sign(
+      {
+        typ: 'event_ticket',
+        rid: registrationId,
+        eid: eventId,
+        uid: userId
+      },
+      env.jwtSecret,
+      {
+        expiresIn: this.#resolveTicketExpiry(eventEndDate)
+      }
+    );
+  }
+
+  #resolveTicketExpiry(eventEndDate) {
+    if (!eventEndDate) {
+      return '30d';
+    }
+
+    const eventEndMillis = new Date(eventEndDate).getTime();
+    if (Number.isNaN(eventEndMillis)) {
+      return '30d';
+    }
+
+    const now = Date.now();
+    const minLifetimeSeconds = 60 * 30;
+    const eventLifetimeSeconds = Math.ceil((eventEndMillis - now) / 1000);
+
+    return Math.max(eventLifetimeSeconds, minLifetimeSeconds);
   }
 }
 

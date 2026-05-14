@@ -82,7 +82,10 @@ const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   smtpFromEmail: process.env.SMTP_FROM_EMAIL || '',
-  smtpFromName: process.env.SMTP_FROM_NAME || 'Event Management System'
+  smtpFromName: process.env.SMTP_FROM_NAME || 'Event Management System',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
 };
 
 module.exports = env;

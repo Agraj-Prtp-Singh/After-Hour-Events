@@ -50,8 +50,25 @@ const vendorApplicationSchema = new mongoose.Schema(
       default: VENDOR_APPLICATION_STATUS.PENDING,
       index: true
     },
+    message: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: ''
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
     reviewedAt: {
       type: Date,
+      default: null
+    },
+    rejectionReason: {
+      type: String,
+      trim: true,
+      maxlength: 500,
       default: null
     }
   },

@@ -40,7 +40,9 @@ export default function VendorApplyEvents() {
       events.filter((event) => {
         if (!event?.openToVendors) return false;
         const eventEndDate = new Date(event.endDate);
-        return !Number.isNaN(eventEndDate.getTime()) && eventEndDate >= new Date();
+        return (
+          !Number.isNaN(eventEndDate.getTime()) && eventEndDate >= new Date()
+        );
       }),
     [events],
   );
@@ -77,7 +79,9 @@ export default function VendorApplyEvents() {
         notes: formData.notes.trim(),
       });
 
-      setSubmitMessage("Event application submitted. Waiting for planner approval.");
+      setSubmitMessage(
+        "Event application submitted. Waiting for planner approval.",
+      );
       closeModal();
     } catch (err) {
       setSubmitMessage(err.message || "Failed to submit application.");
@@ -123,15 +127,23 @@ export default function VendorApplyEvents() {
                 key={event._id}
                 className="rounded-2xl border border-slate-200 p-4 shadow-sm"
               >
-                <h3 className="text-lg font-semibold text-slate-900">{event.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{event.description}</p>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {event.title}
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  {event.description}
+                </p>
                 <div className="mt-3 space-y-1 text-sm text-slate-600">
                   <p>
-                    <span className="font-medium text-slate-800">Event Date:</span>{" "}
+                    <span className="font-medium text-slate-800">
+                      Event Date:
+                    </span>{" "}
                     {formatDate(event.startDate)}
                   </p>
                   <p>
-                    <span className="font-medium text-slate-800">Location:</span>{" "}
+                    <span className="font-medium text-slate-800">
+                      Location:
+                    </span>{" "}
                     {event.location}
                   </p>
                 </div>
@@ -168,7 +180,9 @@ export default function VendorApplyEvents() {
                 </span>
                 <select
                   value={formData.eventId}
-                  onChange={(event) => handleInputChange("eventId", event.target.value)}
+                  onChange={(event) =>
+                    handleInputChange("eventId", event.target.value)
+                  }
                   className="input"
                   required
                 >
@@ -188,7 +202,9 @@ export default function VendorApplyEvents() {
                 <input
                   type="text"
                   value={formData.stallName}
-                  onChange={(event) => handleInputChange("stallName", event.target.value)}
+                  onChange={(event) =>
+                    handleInputChange("stallName", event.target.value)
+                  }
                   className="input"
                   placeholder="e.g. Himalayan Organic Bites"
                   required
@@ -201,7 +217,9 @@ export default function VendorApplyEvents() {
                 </span>
                 <textarea
                   value={formData.offerings}
-                  onChange={(event) => handleInputChange("offerings", event.target.value)}
+                  onChange={(event) =>
+                    handleInputChange("offerings", event.target.value)
+                  }
                   className="input min-h-24"
                   placeholder="Food menu, products, services, experience..."
                   required
@@ -214,7 +232,9 @@ export default function VendorApplyEvents() {
                 </span>
                 <textarea
                   value={formData.notes}
-                  onChange={(event) => handleInputChange("notes", event.target.value)}
+                  onChange={(event) =>
+                    handleInputChange("notes", event.target.value)
+                  }
                   className="input min-h-20"
                   placeholder="Power needs, setup details, team size, etc."
                 />
@@ -222,7 +242,9 @@ export default function VendorApplyEvents() {
             </div>
 
             {submitMessage && (
-              <p className="mt-4 text-sm font-medium text-red-500">{submitMessage}</p>
+              <p className="mt-4 text-sm font-medium text-red-500">
+                {submitMessage}
+              </p>
             )}
 
             <div className="mt-6 flex items-center gap-3">

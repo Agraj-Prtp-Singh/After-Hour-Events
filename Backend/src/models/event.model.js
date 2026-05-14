@@ -45,6 +45,11 @@ const eventSchema = new mongoose.Schema(
       required: true,
       min: 1
     },
+    vendorLimit: {
+      type: Number,
+      min: 0,
+      default: 0
+    },
     ticketPrice: {
       type: Number,
       default: 0,

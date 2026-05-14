@@ -1,10 +1,12 @@
 const VendorApplication = require('../models/vendorApplication.model');
+const { VENDOR_APPLICATION_STATUS } = require('../models/vendorApplication.model');
 
 const populateApplication = (query) =>
   query
-    .populate('eventId', 'title description location startDate endDate category createdBy openToVendors')
-    .populate('vendorId', 'fullName phone email role')
-    .populate('plannerId', 'fullName phone email role');
+    .populate('eventId', 'title description location startDate endDate category createdBy openToVendors vendorLimit isPublished')
+    .populate('vendorId', 'fullName email phone role businessName businessType phoneNumber description verificationStatus')
+    .populate('plannerId', 'fullName phone email role')
+    .populate('reviewedBy', 'fullName email role');
 
 class VendorApplicationRepository {
   create(data) {
@@ -15,20 +17,34 @@ class VendorApplicationRepository {
     return VendorApplication.findOne({ vendorId, eventId });
   }
 
+  findOne(filter) {
+    return VendorApplication.findOne(filter);
+  }
+
   listByVendor(vendorId) {
     return populateApplication(
       VendorApplication.find({ vendorId }).sort({ createdAt: -1 })
     );
   }
 
-  listByPlanner(plannerId) {
-    return populateApplication(
-      VendorApplication.find({ plannerId }).sort({ createdAt: -1 })
-    );
+  listByPlanner(plannerId, status) {
+    const filter = { plannerId };
+    if (status) {
+      filter.status = status;
+    }
+
+    return populateApplication(VendorApplication.find(filter).sort({ createdAt: -1 }));
   }
 
   findById(id) {
-    return VendorApplication.findById(id);
+    return populateApplication(VendorApplication.findById(id));
+  }
+
+  countApprovedByEvent(eventId) {
+    return VendorApplication.countDocuments({
+      eventId,
+      status: VENDOR_APPLICATION_STATUS.APPROVED
+    });
   }
 
   updateById(id, update) {

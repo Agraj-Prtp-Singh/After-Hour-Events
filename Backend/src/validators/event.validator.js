@@ -47,6 +47,10 @@ function validateEventPayload(payload, isUpdate = false) {
     errors.push('capacity must be a positive integer');
   }
 
+  if (payload.vendorLimit !== undefined && (!Number.isInteger(payload.vendorLimit) || payload.vendorLimit < 0)) {
+    errors.push('vendorLimit must be a non-negative integer');
+  }
+
   if (payload.tags !== undefined && !Array.isArray(payload.tags)) {
     errors.push('tags must be an array of strings');
   }

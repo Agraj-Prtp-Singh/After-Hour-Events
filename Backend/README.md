@@ -72,4 +72,11 @@ Keep `OTP_EXPOSE_IN_RESPONSE=false` to avoid leaking OTP in API responses.
 - Event Module (`/events`)
 - Registration Module (`/registrations`)
 
+## Ticket QR (Student Dashboard)
+
+- `GET /api/v1/registrations/me` now includes a signed `ticket.qrPayload` for each active registration.
+- Student dashboard can render that payload as a QR code on the ticket.
+- Scanner flow: `GET /api/v1/registrations/ticket/scan?token=<qrPayload>` (Bearer token required).
+- The scan endpoint returns the registered event details for that ticket.
+
 Detailed endpoint docs: [docs/sprint1-apis.md](./docs/sprint1-apis.md)

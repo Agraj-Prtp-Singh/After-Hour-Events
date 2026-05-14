@@ -168,6 +168,31 @@ Purpose: Resolve a ticket QR payload into registration + event details.
 Auth: Bearer token required (must be the same logged-in user that owns the ticket)
 Response: `200 OK`
 
+## 5) AI Chatbot API
+### POST `/chatbot/ask`
+Purpose: Ask backend assistant for system navigation and feature explanations.
+Auth: No
+Body:
+```json
+{
+  "question": "How do I register for an event?"
+}
+```
+Response: `200 OK`
+```json
+{
+  "success": true,
+  "message": "Chatbot response generated successfully",
+  "data": {
+    "answer": "To register for an event, call POST /api/v1/events/:id/register with a Bearer token...",
+    "source": "openai"
+  }
+}
+```
+Notes:
+- If `OPENAI_API_KEY` is set, response source is usually `openai`.
+- If OpenAI settings are missing or request fails, backend falls back to an internal rule-based assistant (`source: fallback`).
+
 ## Standard Error Response
 ```json
 {

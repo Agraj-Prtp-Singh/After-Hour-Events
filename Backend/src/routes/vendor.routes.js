@@ -1,5 +1,5 @@
 const express = require('express');
-const vendorApplicationController = require('../controllers/vendorApplication.controller');
+const vendorController = require('../controllers/vendor.controller');
 const { authMiddleware, authorize } = require('../middlewares/auth.middleware');
 const validateObjectId = require('../middlewares/validateObjectId.middleware');
 const { ROLES } = require('../constants/roles');
@@ -7,12 +7,10 @@ const { ROLES } = require('../constants/roles');
 const router = express.Router();
 
 router.use(authMiddleware, authorize(ROLES.VENDOR, ROLES.ADMIN));
-router.get('/events', vendorApplicationController.listAvailableEvents);
-router.get('/applications', vendorApplicationController.listMyApplications);
-router.post(
-  '/events/:eventId/apply',
-  validateObjectId('eventId'),
-  vendorApplicationController.applyForEvent
-);
+router.get('/events', vendorController.getVendorEvents);
+router.post('/events/:eventId/apply', validateObjectId('eventId'), vendorController.applyForEvent);
+router.post('/apply/:eventId', validateObjectId('eventId'), vendorController.applyForEvent);
+router.get('/applications', vendorController.getMyApplications);
+router.get('/profile', vendorController.getMyVendorProfile);
 
 module.exports = router;
