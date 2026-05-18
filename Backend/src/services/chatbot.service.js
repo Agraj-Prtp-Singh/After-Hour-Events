@@ -41,10 +41,10 @@ class ChatbotService {
       };
     }
 
-    if (env.openaiApiKey) {
+    if (env.geminiApiKey) {
       try {
-        const answer = await this.askWithOpenAI(cleanQuestion);
-        return { answer, source: 'openai' };
+        const answer = await this.askWithGemini(cleanQuestion);
+        return { answer, source: 'gemini' };
       } catch (error) {
         return {
           answer: this.askWithFallback(cleanQuestion),
@@ -89,15 +89,25 @@ class ChatbotService {
     return 'I can help with auth, events, registrations, OTP, and admin review flow. Ask things like "how do I register for an event?" or "how does event approval work?"';
   }
 
-  askWithOpenAI(question) {
-    const url = new URL('/chat/completions', env.openaiBaseUrl);
+  askWithGemini(question) {
+    const url = new URL(
+      `/models/${encodeURIComponent(env.geminiModel)}:generateContent?key=${encodeURIComponent(env.geminiApiKey)}`,
+      env.geminiBaseUrl
+    );
 
     const payload = JSON.stringify({
-      model: env.openaiModel,
-      temperature: 0.2,
-      messages: [
-        { role: 'system', content: BACKEND_KNOWLEDGE },
-        { role: 'user', content: question }
+      generationConfig: {
+        temperature: 0.2
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `${BACKEND_KNOWLEDGE}\n\nUser question: ${question}`
+            }
+          ]
+        }
       ]
     });
 
@@ -107,7 +117,6 @@ class ChatbotService {
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${env.openaiApiKey}`,
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(payload)
           }
@@ -119,18 +128,21 @@ class ChatbotService {
           });
           res.on('end', () => {
             if (res.statusCode < 200 || res.statusCode >= 300) {
-              return reject(new Error(`OpenAI request failed with status ${res.statusCode}`));
+              return reject(new Error(`Gemini request failed with status ${res.statusCode}`));
             }
 
             try {
               const parsed = JSON.parse(body);
-              const answer = parsed?.choices?.[0]?.message?.content?.trim();
+              const answer = parsed?.candidates?.[0]?.content?.parts
+                ?.map((part) => part?.text || '')
+                .join('')
+                .trim();
               if (!answer) {
-                return reject(new Error('Empty response from OpenAI'));
+                return reject(new Error('Empty response from Gemini'));
               }
               resolve(answer);
             } catch (error) {
-              reject(new Error('Failed to parse OpenAI response'));
+              reject(new Error('Failed to parse Gemini response'));
             }
           });
         }

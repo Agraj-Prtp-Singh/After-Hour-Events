@@ -69,20 +69,20 @@ Response: `200 OK`
   "message": "Chatbot response generated successfully",
   "data": {
     "answer": "To register for an event, call POST /api/v1/events/:id/register with a Bearer token...",
-    "source": "openai"
+    "source": "gemini"
   }
 }
 ```
 Notes:
 - `question` is required and must be a non-empty string (max 1000 chars).
-- If `OPENAI_API_KEY` is configured, chatbot uses OpenAI (`source: "openai"`).
-- If OpenAI is not configured or fails, chatbot uses local fallback (`source: "fallback"`).
+- If `GEMINI_API_KEY` is configured, chatbot uses Gemini (`source: "gemini"`).
+- If Gemini is not configured or fails, chatbot uses local fallback (`source: "fallback"`).
 
-### OpenAI Health Check (Chatbot)
-Use this endpoint to verify OpenAI integration:
+### Gemini Health Check (Chatbot)
+Use this endpoint to verify Gemini integration:
 - Send POST `/api/v1/chatbot/ask` with any normal question.
-- If response `data.source` is `openai`, integration is working.
-- If response `data.source` is `fallback`, OpenAI key/config is missing or request failed.
+- If response `data.source` is `gemini`, integration is working.
+- If response `data.source` is `fallback`, Gemini key/config is missing or request failed.
 
 ## 4) Vendor APIs
 
