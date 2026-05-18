@@ -179,26 +179,28 @@ class AuthService {
       };
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const passwordResetTokenHash = this.#hashPasswordResetToken(resetToken);
+    const otp = this.#generateOtp();
+    const passwordResetTokenHash = this.#hashPasswordResetToken(otp);
     const passwordResetExpiresAt = new Date(
       Date.now() + env.passwordResetExpiresMinutes * 60 * 1000
     );
 
     user.passwordResetTokenHash = passwordResetTokenHash;
     user.passwordResetExpiresAt = passwordResetExpiresAt;
+    user.passwordResetAttempts = 0;
     await user.save();
 
     try {
       await emailService.sendPasswordResetEmail({
         toEmail: user.email,
         fullName: user.fullName,
-        resetToken,
+        otp,
         expiresInMinutes: env.passwordResetExpiresMinutes
       });
     } catch (error) {
       user.passwordResetTokenHash = null;
       user.passwordResetExpiresAt = null;
+      user.passwordResetAttempts = 0;
       await user.save();
 
       throw new AppError(
@@ -215,28 +217,39 @@ class AuthService {
   async resetPassword(payload) {
     const user = await userRepository.findByEmail(payload.email.toLowerCase());
     if (!user) {
-      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+      throw new AppError('Invalid or expired reset OTP', HTTP_STATUS.BAD_REQUEST);
     }
 
     if (!user.passwordResetTokenHash || !user.passwordResetExpiresAt) {
-      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+      throw new AppError('Invalid or expired reset OTP', HTTP_STATUS.BAD_REQUEST);
     }
 
     if (new Date() > user.passwordResetExpiresAt) {
       user.passwordResetTokenHash = null;
       user.passwordResetExpiresAt = null;
+      user.passwordResetAttempts = 0;
       await user.save();
-      throw new AppError('Reset token has expired', HTTP_STATUS.BAD_REQUEST);
+      throw new AppError('Reset OTP has expired', HTTP_STATUS.BAD_REQUEST);
     }
 
-    const providedTokenHash = this.#hashPasswordResetToken(String(payload.token));
+    if ((user.passwordResetAttempts || 0) >= env.passwordResetMaxAttempts) {
+      throw new AppError(
+        'Maximum reset OTP attempts reached. Please request a new OTP.',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const providedTokenHash = this.#hashPasswordResetToken(String(payload.otp));
     if (providedTokenHash !== user.passwordResetTokenHash) {
-      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+      user.passwordResetAttempts = (user.passwordResetAttempts || 0) + 1;
+      await user.save();
+      throw new AppError('Invalid or expired reset OTP', HTTP_STATUS.BAD_REQUEST);
     }
 
     user.passwordHash = await bcrypt.hash(payload.newPassword, 10);
     user.passwordResetTokenHash = null;
     user.passwordResetExpiresAt = null;
+    user.passwordResetAttempts = 0;
     await user.save();
 
     return {

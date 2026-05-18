@@ -126,8 +126,8 @@ function validateResetPasswordPayload(payload) {
     errors.push('A valid email is required');
   }
 
-  if (!payload.token || String(payload.token).trim().length < 20) {
-    errors.push('A valid reset token is required');
+  if (!payload.otp || !/^\d{6}$/.test(String(payload.otp))) {
+    errors.push('otp must be a 6-digit code');
   }
 
   if (!payload.newPassword || String(payload.newPassword).length < 6) {

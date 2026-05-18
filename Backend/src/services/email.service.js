@@ -52,20 +52,20 @@ class EmailService {
     });
   }
 
-  async sendPasswordResetEmail({ toEmail, fullName, resetToken, expiresInMinutes }) {
+  async sendPasswordResetEmail({ toEmail, fullName, otp, expiresInMinutes }) {
     const transporter = this.#getTransporter();
 
     await transporter.sendMail({
       from: `"${env.smtpFromName}" <${env.smtpFromEmail}>`,
       to: toEmail,
       subject: 'Password reset request',
-      text: `Hi ${fullName || 'there'}, use this token to reset your password: ${resetToken}. It expires in ${expiresInMinutes} minutes.`,
+      text: `Hi ${fullName || 'there'}, use this OTP to reset your password: ${otp}. It expires in ${expiresInMinutes} minutes.`,
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.5;color:#222">
           <p>Hi ${fullName || 'there'},</p>
-          <p>Use this token to reset your password:</p>
-          <p style="font-size:18px;font-weight:700;letter-spacing:1px;margin:12px 0;word-break:break-all;">${resetToken}</p>
-          <p>This token expires in ${expiresInMinutes} minutes.</p>
+          <p>Use this OTP to reset your password:</p>
+          <p style="font-size:24px;font-weight:700;letter-spacing:2px;margin:12px 0;">${otp}</p>
+          <p>This OTP expires in ${expiresInMinutes} minutes.</p>
           <p>If you did not request this, you can ignore this email.</p>
         </div>
       `
