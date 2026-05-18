@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Register from "./pages/RegisterPage";
 import OTPPage from "./pages/OTPPage";
 import LandingPage from "./pages/LandingPage";
@@ -49,7 +49,6 @@ function PlannerLayout({ children }) {
         <main className="flex-1 overflow-y-auto">{children}</main>
         <Footer />
       </div>
-      <AskAI />
     </div>
   );
 }
@@ -62,7 +61,6 @@ function StudentLayout({ children }) {
         <main className="flex-1 overflow-y-auto">{children}</main>
         <Footer />
       </div>
-      <AskAI />
     </div>
   );
 }
@@ -114,202 +112,204 @@ function PublicOnlyRoute({ children }) {
 
 function App() {
   const fallbackRoute = getHomeRouteForRole(getStoredUser()?.role);
+  const { pathname } = useLocation();
+  const showAskAI = pathname !== "/";
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route
-        path="/register"
-        element={
-          <PublicOnlyRoute>
-            <Register />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
-        path="/otp"
-        element={
-          <PublicOnlyRoute>
-            <OTPPage />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <PublicOnlyRoute>
-            <>
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/otp"
+          element={
+            <PublicOnlyRoute>
+              <OTPPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
               <Login />
-              <AskAI />
-            </>
-          </PublicOnlyRoute>
-        }
-      />
+            </PublicOnlyRoute>
+          }
+        />
 
-      <Route
-        path="/admin/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminLayout>
-              <AdminDashboardPage />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/events"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminLayout>
-              <AdminEvents />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/settings"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminLayout>
-              <AdminSettings />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AdminDashboardPage />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/events"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AdminEvents />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AdminSettings />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/student-dashboard"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentLayout>
-              <StudentDashboard />
-            </StudentLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/student/dashboard"
-        element={<Navigate to="/student-dashboard" replace />}
-      />
-      <Route
-        path="/student/browse"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentLayout>
-              <BrowseStudentEvents />
-            </StudentLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/student/bookings"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentLayout>
-              <StudentBookings />
-            </StudentLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/student/event/:id"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentLayout>
-              <StudentEventDetail />
-            </StudentLayout>
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/student-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLayout>
+                <StudentDashboard />
+              </StudentLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/dashboard"
+          element={<Navigate to="/student-dashboard" replace />}
+        />
+        <Route
+          path="/student/browse"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLayout>
+                <BrowseStudentEvents />
+              </StudentLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLayout>
+                <StudentBookings />
+              </StudentLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/event/:id"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLayout>
+                <StudentEventDetail />
+              </StudentLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/planner/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
-            <PlannerLayout>
-              <PlannerDashboard />
-            </PlannerLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planner/events"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
-            <PlannerLayout>
-              <CreateEvent />
-            </PlannerLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planner/attendees"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
-            <PlannerLayout>
-              <Attendees />
-            </PlannerLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planner/scanner"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
-            <PlannerLayout>
-              <PlannerScanner />
-            </PlannerLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planner/apps"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
-            <PlannerLayout>
-              <PlannerVendorApplications />
-            </PlannerLayout>
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/planner/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+              <PlannerLayout>
+                <PlannerDashboard />
+              </PlannerLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/planner/events"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+              <PlannerLayout>
+                <CreateEvent />
+              </PlannerLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/planner/attendees"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+              <PlannerLayout>
+                <Attendees />
+              </PlannerLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/planner/scanner"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+              <PlannerLayout>
+                <PlannerScanner />
+              </PlannerLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/planner/apps"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "event_planner"]}>
+              <PlannerLayout>
+                <PlannerVendorApplications />
+              </PlannerLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-      <Route path="/student" element={<Navigate to="/student-dashboard" replace />} />
-      <Route
-        path="/vendor/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={["vendor", "admin"]}>
-            <VendorLayout>
-              <VendorDashboard />
-            </VendorLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/vendor/apply-events"
-        element={
-          <ProtectedRoute allowedRoles={["vendor", "admin"]}>
-            <VendorLayout>
-              <VendorApplyEvents />
-            </VendorLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/vendor/settings"
-        element={
-          <ProtectedRoute allowedRoles={["vendor", "admin"]}>
-            <VendorLayout>
-              <VendorSettings />
-            </VendorLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/student" element={<Navigate to="/student-dashboard" replace />} />
+        <Route
+          path="/vendor/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["vendor", "admin"]}>
+              <VendorLayout>
+                <VendorDashboard />
+              </VendorLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/apply-events"
+          element={
+            <ProtectedRoute allowedRoles={["vendor", "admin"]}>
+              <VendorLayout>
+                <VendorApplyEvents />
+              </VendorLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/settings"
+          element={
+            <ProtectedRoute allowedRoles={["vendor", "admin"]}>
+              <VendorLayout>
+                <VendorSettings />
+              </VendorLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
 
-      <Route path="/planner" element={<Navigate to="/planner/dashboard" replace />} />
-      <Route path="*" element={<Navigate to={fallbackRoute} replace />} />
-    </Routes>
+        <Route path="/planner" element={<Navigate to="/planner/dashboard" replace />} />
+        <Route path="*" element={<Navigate to={fallbackRoute} replace />} />
+      </Routes>
+      {showAskAI && <AskAI />}
+    </>
   );
 }
 
