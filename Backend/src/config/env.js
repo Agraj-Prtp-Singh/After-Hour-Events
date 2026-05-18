@@ -70,6 +70,12 @@ const env = {
     const parsed = Number(raw);
     return Number.isNaN(parsed) || parsed <= 0 ? 5 : parsed;
   })(),
+  passwordResetExpiresMinutes: (() => {
+    const raw = process.env.PASSWORD_RESET_EXPIRES_MINUTES;
+    if (!raw) return 15;
+    const parsed = Number(raw);
+    return Number.isNaN(parsed) || parsed <= 0 ? 15 : parsed;
+  })(),
   otpExposeInResponse: String(process.env.OTP_EXPOSE_IN_RESPONSE || '').toLowerCase() === 'true',
   smtpHost: process.env.SMTP_HOST || '',
   smtpPort: (() => {

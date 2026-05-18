@@ -171,6 +171,79 @@ class AuthService {
     };
   }
 
+  async forgotPassword(payload) {
+    const user = await userRepository.findByEmail(payload.email.toLowerCase());
+    if (!user) {
+      return {
+        message: 'If the email exists, password reset instructions have been sent'
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const passwordResetTokenHash = this.#hashPasswordResetToken(resetToken);
+    const passwordResetExpiresAt = new Date(
+      Date.now() + env.passwordResetExpiresMinutes * 60 * 1000
+    );
+
+    user.passwordResetTokenHash = passwordResetTokenHash;
+    user.passwordResetExpiresAt = passwordResetExpiresAt;
+    await user.save();
+
+    try {
+      await emailService.sendPasswordResetEmail({
+        toEmail: user.email,
+        fullName: user.fullName,
+        resetToken,
+        expiresInMinutes: env.passwordResetExpiresMinutes
+      });
+    } catch (error) {
+      user.passwordResetTokenHash = null;
+      user.passwordResetExpiresAt = null;
+      await user.save();
+
+      throw new AppError(
+        `Failed to send password reset email. ${error.message}`,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    return {
+      message: 'If the email exists, password reset instructions have been sent'
+    };
+  }
+
+  async resetPassword(payload) {
+    const user = await userRepository.findByEmail(payload.email.toLowerCase());
+    if (!user) {
+      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (!user.passwordResetTokenHash || !user.passwordResetExpiresAt) {
+      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (new Date() > user.passwordResetExpiresAt) {
+      user.passwordResetTokenHash = null;
+      user.passwordResetExpiresAt = null;
+      await user.save();
+      throw new AppError('Reset token has expired', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const providedTokenHash = this.#hashPasswordResetToken(String(payload.token));
+    if (providedTokenHash !== user.passwordResetTokenHash) {
+      throw new AppError('Invalid or expired reset token', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    user.passwordHash = await bcrypt.hash(payload.newPassword, 10);
+    user.passwordResetTokenHash = null;
+    user.passwordResetExpiresAt = null;
+    await user.save();
+
+    return {
+      message: 'Password reset successful'
+    };
+  }
+
   #generateOtp() {
     return String(Math.floor(100000 + Math.random() * 900000));
   }
@@ -179,6 +252,13 @@ class AuthService {
     return crypto
       .createHash('sha256')
       .update(`${otp}:${env.jwtSecret}`)
+      .digest('hex');
+  }
+
+  #hashPasswordResetToken(token) {
+    return crypto
+      .createHash('sha256')
+      .update(`${token}:${env.jwtSecret}`)
       .digest('hex');
   }
 

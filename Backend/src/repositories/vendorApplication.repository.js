@@ -3,7 +3,10 @@ const { VENDOR_APPLICATION_STATUS } = require('../models/vendorApplication.model
 
 const populateApplication = (query) =>
   query
-    .populate('eventId', 'title description location startDate endDate category createdBy openToVendors vendorLimit isPublished vendorSecurityDeposit vendorPaymentQrImage')
+    .populate({
+      path: 'eventId',
+      populate: { path: 'createdBy', select: 'fullName email role' }
+    })
     .populate('vendorId', 'fullName email phone role businessName businessType phoneNumber description verificationStatus')
     .populate('plannerId', 'fullName phone email role')
     .populate('reviewedBy', 'fullName email role');
@@ -28,12 +31,21 @@ class VendorApplicationRepository {
   }
 
   listByPlanner(plannerId, status) {
-    const filter = { plannerId };
+    const filter = {};
     if (status) {
       filter.status = status;
     }
 
-    return populateApplication(VendorApplication.find(filter).sort({ createdAt: -1 }));
+    return VendorApplication.find(filter)
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'eventId',
+        match: { createdBy: plannerId },
+        populate: { path: 'createdBy', select: 'fullName email role' }
+      })
+      .populate('vendorId', 'fullName email phone role businessName businessType phoneNumber description verificationStatus')
+      .populate('plannerId', 'fullName phone email role')
+      .populate('reviewedBy', 'fullName email role');
   }
 
   findById(id) {

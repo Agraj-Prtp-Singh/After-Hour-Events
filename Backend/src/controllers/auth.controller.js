@@ -3,7 +3,9 @@ const {
   validateRegisterPayload,
   validateLoginPayload,
   validateSendOtpPayload,
-  validateVerifyOtpPayload
+  validateVerifyOtpPayload,
+  validateForgotPasswordPayload,
+  validateResetPasswordPayload
 } = require('../validators/auth.validator');
 const asyncHandler = require('../utils/asyncHandler');
 const HTTP_STATUS = require('../constants/httpStatus');
@@ -62,10 +64,34 @@ const verifyOtp = asyncHandler(async (req, res) => {
   });
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+  validateForgotPasswordPayload(req.body);
+  const data = await authService.forgotPassword(req.body);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'If the email exists, password reset instructions have been sent',
+    data
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  validateResetPasswordPayload(req.body);
+  const data = await authService.resetPassword(req.body);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Password reset successful',
+    data
+  });
+});
+
 module.exports = {
   register,
   login,
   getMyProfile,
   sendOtp,
-  verifyOtp
+  verifyOtp,
+  forgotPassword,
+  resetPassword
 };

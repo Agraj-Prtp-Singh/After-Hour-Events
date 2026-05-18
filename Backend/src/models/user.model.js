@@ -76,6 +76,14 @@ const userSchema = new mongoose.Schema(
     otpVerifiedAt: {
       type: Date,
       default: null
+    },
+    passwordResetTokenHash: {
+      type: String,
+      default: null
+    },
+    passwordResetExpiresAt: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }

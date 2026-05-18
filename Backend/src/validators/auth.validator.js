@@ -107,9 +107,43 @@ function validateVerifyOtpPayload(payload) {
   }
 }
 
+function validateForgotPasswordPayload(payload) {
+  const errors = [];
+
+  if (!payload.email || !isEmail(payload.email)) {
+    errors.push('A valid email is required');
+  }
+
+  if (errors.length) {
+    throw new AppError(errors.join(', '), HTTP_STATUS.BAD_REQUEST);
+  }
+}
+
+function validateResetPasswordPayload(payload) {
+  const errors = [];
+
+  if (!payload.email || !isEmail(payload.email)) {
+    errors.push('A valid email is required');
+  }
+
+  if (!payload.token || String(payload.token).trim().length < 20) {
+    errors.push('A valid reset token is required');
+  }
+
+  if (!payload.newPassword || String(payload.newPassword).length < 6) {
+    errors.push('newPassword must be at least 6 characters long');
+  }
+
+  if (errors.length) {
+    throw new AppError(errors.join(', '), HTTP_STATUS.BAD_REQUEST);
+  }
+}
+
 module.exports = {
   validateRegisterPayload,
   validateLoginPayload,
   validateSendOtpPayload,
-  validateVerifyOtpPayload
+  validateVerifyOtpPayload,
+  validateForgotPasswordPayload,
+  validateResetPasswordPayload
 };
