@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, Loader2, QrCode, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, Loader2, QrCode, Upload, XCircle } from "lucide-react";
+import jsQR from "jsqr";
 import { checkInAttendee } from "../api/planner";
 
 const formatCheckedInAt = (value) =>
@@ -14,12 +15,14 @@ const formatCheckedInAt = (value) =>
 
 export default function PlannerScanner() {
   const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
   const streamRef = useRef(null);
   const scannerTimerRef = useRef(null);
   const scanningRef = useRef(false);
   const [manualCode, setManualCode] = useState("");
   const [cameraActive, setCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [imageScanning, setImageScanning] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [result, setResult] = useState(null);
 
@@ -69,26 +72,97 @@ export default function PlannerScanner() {
     }
   };
 
+  const createQrDetector = () => {
+    if (!("BarcodeDetector" in window)) {
+      return null;
+    }
+
+    return new window.BarcodeDetector({ formats: ["qr_code"] });
+  };
+
+  const loadImageFromFile = (file) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      const imageUrl = URL.createObjectURL(file);
+
+      image.onload = () => {
+        URL.revokeObjectURL(imageUrl);
+        resolve(image);
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(imageUrl);
+        reject(new Error("Image could not be loaded."));
+      };
+
+      image.src = imageUrl;
+    });
+
+  const createScanCanvas = (image) => {
+    const maxSize = 1800;
+    const scale = Math.min(3, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    return canvas;
+  };
+
+  const detectQrWithBrowser = async (detector, source) => {
+    if (!detector) return "";
+
+    const codes = await detector.detect(source);
+    return codes[0]?.rawValue || "";
+  };
+
+  const detectQrWithCanvas = (canvas) => {
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "attemptBoth",
+    });
+
+    return code?.data || "";
+  };
+
   const startCamera = async () => {
     setCameraError("");
     setResult(null);
 
-    if (!("BarcodeDetector" in window)) {
-      setCameraError("Camera QR scanning is not supported in this browser. Paste the QR text or ticket code below.");
+    const detector = createQrDetector();
+    if (!detector) {
+      setCameraError("QR scanning is not supported in this browser. Paste the QR text or ticket code below.");
       return;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false,
-      });
+      const cameraOptions = [
+        { video: { facingMode: { ideal: "environment" } }, audio: false },
+        { video: true, audio: false },
+      ];
+      let stream = null;
+
+      for (const options of cameraOptions) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(options);
+          break;
+        } catch (error) {
+          if (options === cameraOptions.at(-1)) {
+            throw error;
+          }
+        }
+      }
+
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
       setCameraActive(true);
 
-      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
       scannerTimerRef.current = window.setInterval(async () => {
         if (!videoRef.current || scanningRef.current) return;
 
@@ -106,6 +180,37 @@ export default function PlannerScanner() {
     } catch (error) {
       setCameraError("Camera permission is needed to scan QR tickets.");
       stopCamera();
+    }
+  };
+
+  const scanUploadedImage = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    setCameraError("");
+    setResult(null);
+
+    if (!file) return;
+
+    try {
+      setImageScanning(true);
+      const detector = createQrDetector();
+      const image = await loadImageFromFile(file);
+      const canvas = createScanCanvas(image);
+
+      const value =
+        (await detectQrWithBrowser(detector, image)) ||
+        (await detectQrWithBrowser(detector, canvas)) ||
+        detectQrWithCanvas(canvas);
+      if (!value) {
+        setCameraError("No QR code was found in that image. Try a clearer ticket screenshot.");
+        return;
+      }
+
+      submitScan(value);
+    } catch (error) {
+      setCameraError("Could not read that image. Try another QR screenshot or paste the ticket code.");
+    } finally {
+      setImageScanning(false);
     }
   };
 
@@ -127,10 +232,12 @@ export default function PlannerScanner() {
                   <span className="text-sm font-medium">Camera scanner is idle</span>
                 </div>
               )}
-              {loading && (
+              {(loading || imageScanning) && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white gap-2">
                   <Loader2 size={20} className="animate-spin" />
-                  <span className="text-sm font-semibold">Checking ticket...</span>
+                  <span className="text-sm font-semibold">
+                    {imageScanning ? "Reading QR image..." : "Checking ticket..."}
+                  </span>
                 </div>
               )}
             </div>
@@ -143,6 +250,22 @@ export default function PlannerScanner() {
               >
                 <Camera size={16} />
                 {cameraActive ? "Stop camera" : "Start camera"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={scanUploadedImage}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading || imageScanning}
+                className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition cursor-pointer"
+              >
+                {imageScanning ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {imageScanning ? "Reading image" : "Browse QR image"}
               </button>
             </div>
           </section>
