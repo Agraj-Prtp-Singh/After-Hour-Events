@@ -1,24 +1,88 @@
 import React, { useState } from "react";
 import { MessageCircleMore, X, Send } from "lucide-react";
-import { getStoredToken } from "../utils/auth";
+import { getStoredToken, getStoredUser, normalizeRole } from "../utils/auth";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
-const QUICK_QUESTIONS = [
-  "How do I book an event?",
-  "How do I reset my password?",
-  "Where is my ticket?",
-  "How do vendors apply?",
-  "Why is my event pending?",
-];
+function getRoleAwareQuickQuestions(role) {
+  if (role === "student") {
+    return [
+      "How do I book an event?",
+      "How do I reset my password?",
+      "Where is my ticket?",
+      "Why can't I register for this event?",
+      "How do I cancel my booking?",
+    ];
+  }
+
+  if (role === "vendor") {
+    return [
+      "How do I apply to an event?",
+      "Where can I see my applications?",
+      "Why was my vendor request rejected?",
+      "How do I update my profile?",
+      "How do I reset my password?",
+    ];
+  }
+
+  if (role === "event_planner") {
+    return [
+      "How do I create an event?",
+      "Why is my event pending?",
+      "How do I review vendor applications?",
+      "How do I edit my event?",
+      "How do I reset my password?",
+    ];
+  }
+
+  if (role === "admin") {
+    return [
+      "How do I review pending events?",
+      "How do I approve or deny an event?",
+      "How do I check platform stats?",
+      "How do I reset my password?",
+      "How does chatbot logging work?",
+    ];
+  }
+
+  return [
+    "How do I book an event?",
+    "How do I reset my password?",
+    "Where is my ticket?",
+    "How do vendors apply?",
+    "Why is my event pending?",
+  ];
+}
+
+function getRoleAwareWelcome(role) {
+  if (role === "student") {
+    return "Hi, I am here to help with student tasks like events, bookings, tickets, and account help.";
+  }
+
+  if (role === "vendor") {
+    return "Hi, I am here to help with vendor applications, profile updates, and account help.";
+  }
+
+  if (role === "event_planner") {
+    return "Hi, I am here to help with creating events, approval flow, and vendor application review.";
+  }
+
+  if (role === "admin") {
+    return "Hi, I am here to help with moderation, approvals, and admin operations.";
+  }
+
+  return "Hi, I am here to help with bookings, tickets, login, events, or vendor applications.";
+}
 
 export default function AskAI() {
+  const currentRole = normalizeRole(getStoredUser()?.role);
+  const quickQuestions = getRoleAwareQuickQuestions(currentRole);
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hi, I am here to help with bookings, tickets, login, events, or vendor applications.",
+      text: getRoleAwareWelcome(currentRole),
     },
   ]);
   const [input, setInput] = useState("");
@@ -107,7 +171,7 @@ export default function AskAI() {
 
             {!loading && (
               <div className="flex flex-wrap gap-2 pt-1">
-                {QUICK_QUESTIONS.map((question) => (
+                {quickQuestions.map((question) => (
                   <button
                     key={question}
                     type="button"

@@ -87,6 +87,18 @@ class ChatbotService {
     ).toLowerCase();
 
     if (this.#isGreeting(normalizedQuestion)) {
+      if (userRole === ROLES.STUDENT) {
+        return 'Hi, nice to see you. What do you need help with today: booking an event, finding your ticket, or resetting your password?';
+      }
+      if (userRole === ROLES.VENDOR) {
+        return 'Hi, nice to see you. What do you need help with today: applying to events, checking your vendor applications, or updating your profile?';
+      }
+      if (userRole === ROLES.EVENT_PLANNER) {
+        return 'Hi, nice to see you. What do you need help with today: creating an event, checking pending status, or reviewing vendor applications?';
+      }
+      if (userRole === ROLES.ADMIN) {
+        return 'Hi, nice to see you. What do you need help with today: reviewing pending events, approvals, or admin actions?';
+      }
       return 'Hi, nice to see you. What do you need help with today: booking an event, finding your ticket, resetting your password, or applying as a vendor?';
     }
 
