@@ -34,6 +34,16 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json({ limit: "3mb" }));
 
+const apiRootHandler = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API root - backend is running",
+  });
+};
+
+app.get("/api/v1", apiRootHandler);
+app.get("/api", apiRootHandler);
+
 app.use("/api/v1", routes);
 app.use("/api", routes);
 
