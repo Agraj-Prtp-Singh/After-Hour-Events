@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, Loader2, QrCode, Upload, XCircle } from "lucide-react";
+import {
+  Camera,
+  CheckCircle2,
+  Loader2,
+  QrCode,
+  Upload,
+  XCircle,
+} from "lucide-react";
 import jsQR from "jsqr";
 import { checkInAttendee } from "../api/planner";
 
@@ -88,6 +95,25 @@ export default function PlannerScanner() {
     return new window.BarcodeDetector({ formats: ["qr_code"] });
   };
 
+  const createVideoScanCanvas = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) return null;
+
+    const maxDimension = 720;
+    const scale = Math.min(
+      1,
+      maxDimension / Math.max(video.videoWidth, video.videoHeight),
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    return canvas;
+  };
+
   const handleManualCodeChange = (event) => {
     setManualCode(event.target.value);
 
@@ -116,7 +142,10 @@ export default function PlannerScanner() {
 
   const createScanCanvas = (image) => {
     const maxSize = 1800;
-    const scale = Math.min(3, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+    const scale = Math.min(
+      3,
+      maxSize / Math.max(image.naturalWidth, image.naturalHeight),
+    );
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
     canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
@@ -151,10 +180,7 @@ export default function PlannerScanner() {
     setResult(null);
 
     const detector = createQrDetector();
-    if (!detector) {
-      setCameraError("Camera scanning is not supported in this browser. Manual check-in still works below.");
-      return;
-    }
+    const hasNativeDetector = Boolean(detector);
 
     try {
       const cameraOptions = [
@@ -179,12 +205,30 @@ export default function PlannerScanner() {
       await videoRef.current.play();
       setCameraActive(true);
 
+      if (!hasNativeDetector) {
+        setCameraError(
+          "Native barcode detection is unavailable. The camera will still try scanning using a fallback image scan.",
+        );
+      }
+
       scannerTimerRef.current = window.setInterval(async () => {
         if (!videoRef.current || scanningRef.current) return;
 
         try {
-          const codes = await detector.detect(videoRef.current);
-          const value = codes[0]?.rawValue;
+          let value = "";
+
+          if (hasNativeDetector) {
+            const codes = await detector.detect(videoRef.current);
+            value = codes[0]?.rawValue || "";
+          }
+
+          if (!value) {
+            const snapshot = createVideoScanCanvas();
+            if (snapshot) {
+              value = detectQrWithCanvas(snapshot);
+            }
+          }
+
           if (value) {
             submitScan(value);
           }
@@ -218,13 +262,17 @@ export default function PlannerScanner() {
         (await detectQrWithBrowser(detector, canvas)) ||
         detectQrWithCanvas(canvas);
       if (!value) {
-        setCameraError("No QR code was found in that image. Try a clearer ticket screenshot.");
+        setCameraError(
+          "No QR code was found in that image. Try a clearer ticket screenshot.",
+        );
         return;
       }
 
       submitScan(value);
     } catch (error) {
-      setCameraError("Could not read that image. Try another QR screenshot or paste the ticket code.");
+      setCameraError(
+        "Could not read that image. Try another QR screenshot or paste the ticket code.",
+      );
     } finally {
       setImageScanning(false);
     }
@@ -235,24 +283,35 @@ export default function PlannerScanner() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Scanner</h1>
-          <p className="text-sm text-gray-500 mt-1">Scan an attendee ticket to mark them checked in.</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Scan an attendee ticket to mark them checked in.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-5">
           <section className="bg-white border border-black/10 rounded-2xl shadow-sm overflow-hidden">
             <div className="aspect-video bg-slate-950 flex items-center justify-center relative">
-              <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+              <video
+                ref={videoRef}
+                className="h-full w-full object-cover"
+                muted
+                playsInline
+              />
               {!cameraActive && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white/80 gap-3">
                   <QrCode size={48} />
-                  <span className="text-sm font-medium">Camera scanner is idle</span>
+                  <span className="text-sm font-medium">
+                    Camera scanner is idle
+                  </span>
                 </div>
               )}
               {(loading || imageScanning) && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white gap-2">
                   <Loader2 size={20} className="animate-spin" />
                   <span className="text-sm font-semibold">
-                    {imageScanning ? "Reading QR image..." : "Checking ticket..."}
+                    {imageScanning
+                      ? "Reading QR image..."
+                      : "Checking ticket..."}
                   </span>
                 </div>
               )}
@@ -280,7 +339,11 @@ export default function PlannerScanner() {
                 disabled={loading || imageScanning}
                 className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition cursor-pointer"
               >
-                {imageScanning ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {imageScanning ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Upload size={16} />
+                )}
                 {imageScanning ? "Reading image" : "Browse QR image"}
               </button>
             </div>
@@ -288,8 +351,12 @@ export default function PlannerScanner() {
 
           <section className="bg-white border border-black/10 rounded-2xl shadow-sm p-5 space-y-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Manual check-in</h2>
-              <p className="text-sm text-gray-500 mt-1">Paste the QR payload or type the ticket code.</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Manual check-in
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Paste the QR payload or type the ticket code.
+              </p>
             </div>
 
             <textarea
@@ -317,9 +384,15 @@ export default function PlannerScanner() {
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  {result?.type === "success" ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                  {result?.type === "success" ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <XCircle size={18} />
+                  )}
                   <div>
-                    <p className="font-semibold">{result?.title || "Camera scanner unavailable"}</p>
+                    <p className="font-semibold">
+                      {result?.title || "Camera scanner unavailable"}
+                    </p>
                     <p className="mt-0.5">{result?.message || cameraError}</p>
                   </div>
                 </div>
@@ -327,24 +400,42 @@ export default function PlannerScanner() {
                 {result?.type === "success" && result.details && (
                   <div className="mt-3 grid gap-2 border-t border-green-200 pt-3 text-xs">
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold text-green-800">Event</span>
-                      <span className="text-right">{result.details.eventTitle}</span>
+                      <span className="font-semibold text-green-800">
+                        Event
+                      </span>
+                      <span className="text-right">
+                        {result.details.eventTitle}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold text-green-800">Email</span>
-                      <span className="text-right break-all">{result.details.email}</span>
+                      <span className="font-semibold text-green-800">
+                        Email
+                      </span>
+                      <span className="text-right break-all">
+                        {result.details.email}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold text-green-800">Phone</span>
+                      <span className="font-semibold text-green-800">
+                        Phone
+                      </span>
                       <span className="text-right">{result.details.phone}</span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold text-green-800">Ticket</span>
-                      <span className="font-mono text-right">{result.details.ticketCode}</span>
+                      <span className="font-semibold text-green-800">
+                        Ticket
+                      </span>
+                      <span className="font-mono text-right">
+                        {result.details.ticketCode}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold text-green-800">Checked in</span>
-                      <span className="text-right">{result.details.checkedInAt}</span>
+                      <span className="font-semibold text-green-800">
+                        Checked in
+                      </span>
+                      <span className="text-right">
+                        {result.details.checkedInAt}
+                      </span>
                     </div>
                   </div>
                 )}

@@ -27,14 +27,11 @@ import PlannerSettings from "./pages/PlannerSettings";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorApplyEvents from "./pages/VendorApplyEvents";
 import VendorSettings from "./pages/VendorSettings";
-import {
-  getHomeRouteForRole,
-  getStoredUser,
-} from "./utils/auth";
+import { getHomeRouteForRole, getStoredUser } from "./utils/auth";
 
 function AdminLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-black">
+    <div className="flex min-h-screen flex-col md:flex-row bg-[#F8FAFC] text-black">
       <AdminSidebar />
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto">{children}</main>
@@ -46,7 +43,7 @@ function AdminLayout({ children }) {
 
 function PlannerLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-black">
+    <div className="flex min-h-screen flex-col md:flex-row bg-[#F8FAFC] text-black">
       <PlannerSidebar />
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto">{children}</main>
@@ -58,7 +55,7 @@ function PlannerLayout({ children }) {
 
 function StudentLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-black">
+    <div className="flex min-h-screen flex-col md:flex-row bg-[#F8FAFC] text-black">
       <StudentSidebar />
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto">{children}</main>
@@ -70,9 +67,9 @@ function StudentLayout({ children }) {
 
 function VendorLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-black">
+    <div className="flex min-h-screen flex-col md:flex-row bg-[#F8FAFC] text-black">
       <VendorSidebar />
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto">{children}</main>
         <Footer />
       </div>
@@ -303,8 +300,14 @@ function App() {
           }
         />
 
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/student" element={<Navigate to="/student-dashboard" replace />} />
+        <Route
+          path="/admin"
+          element={<Navigate to="/admin/dashboard" replace />}
+        />
+        <Route
+          path="/student"
+          element={<Navigate to="/student-dashboard" replace />}
+        />
         <Route
           path="/vendor/dashboard"
           element={
@@ -335,9 +338,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
+        <Route
+          path="/vendor"
+          element={<Navigate to="/vendor/dashboard" replace />}
+        />
 
-        <Route path="/planner" element={<Navigate to="/planner/dashboard" replace />} />
+        <Route
+          path="/planner"
+          element={<Navigate to="/planner/dashboard" replace />}
+        />
         <Route path="*" element={<Navigate to={fallbackRoute} replace />} />
       </Routes>
       {showAskAI && <AskAI />}

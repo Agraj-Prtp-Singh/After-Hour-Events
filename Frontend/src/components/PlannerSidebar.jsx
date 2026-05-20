@@ -15,12 +15,32 @@ import logo from "../assets/logo.png";
 import { clearAuthSession } from "../utils/auth";
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, to: "/planner/dashboard" },
-  { id: "events",    label: "Create Event", icon: CalendarDays,   to: "/planner/events"    },
-  { id: "attendees", label: "Attendees",  icon: Users,          to: "/planner/attendees" },
-  { id: "scanner",   label: "Scanner",    icon: ScanQrCode,     to: "/planner/scanner"   },
-  { id: "apps",      label: "Vendor Apps",icon: PuzzleIcon,     to: "/planner/apps"      },
-  { id: "settings",  label: "Settings",   icon: Settings,       to: "/planner/settings"  },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    to: "/planner/dashboard",
+  },
+  {
+    id: "events",
+    label: "Create Event",
+    icon: CalendarDays,
+    to: "/planner/events",
+  },
+  {
+    id: "attendees",
+    label: "Attendees",
+    icon: Users,
+    to: "/planner/attendees",
+  },
+  { id: "scanner", label: "Scanner", icon: ScanQrCode, to: "/planner/scanner" },
+  { id: "apps", label: "Vendor Apps", icon: PuzzleIcon, to: "/planner/apps" },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    to: "/planner/settings",
+  },
 ];
 
 export default function PlannerSidebar() {
@@ -35,14 +55,14 @@ export default function PlannerSidebar() {
   return (
     <aside
       className={`relative flex min-h-screen flex-col bg-[#08041A] text-white transition-all duration-300 ${
-        isOpen ? "w-64 px-4 py-6" : "w-24 px-3 py-6"
+        isOpen ? "w-full md:w-64 px-4 py-6" : "w-full md:w-24 px-3 py-6"
       }`}
     >
       {/* Toggle Button */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="absolute -right-4 top-8 flex h-8 w-8 items-center justify-center rounded-full border border-[#2A5BFF]/40 bg-[#101935] text-[#8FB1FF] shadow-lg transition hover:scale-105 hover:bg-[#16244A] z-50"
+        className="absolute top-8 right-4 md:-right-4 flex h-8 w-8 items-center justify-center rounded-full border border-[#2A5BFF]/40 bg-[#101935] text-[#8FB1FF] shadow-lg transition hover:scale-105 hover:bg-[#16244A] z-50"
         aria-label={isOpen ? "Hide sidebar" : "Show sidebar"}
       >
         {isOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
