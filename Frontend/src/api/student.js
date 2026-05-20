@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
-const BASE_URL = "http://localhost:5000/api/v1";
+const BASE_URL = API_BASE_URL;
 
 const getAuthHeaders = () => {
   const token =
@@ -23,14 +24,14 @@ export const getStudentStats = async () => {
   try {
     const response = await axios.get(
       `${BASE_URL}/student/stats`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch student stats"
+        "Failed to fetch student stats",
     );
   }
 };
@@ -40,14 +41,14 @@ export const getStudentBookings = async () => {
   try {
     const response = await axios.get(
       `${BASE_URL}/student/bookings`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch bookings"
+        "Failed to fetch bookings",
     );
   }
 };
@@ -64,7 +65,7 @@ export const getEvents = async (params = {}) => {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch events"
+        "Failed to fetch events",
     );
   }
 };
@@ -74,14 +75,14 @@ export const getEventById = async (eventId) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/events/${eventId}`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch event details"
+        "Failed to fetch event details",
     );
   }
 };
@@ -92,14 +93,14 @@ export const bookEvent = async (eventId) => {
     const response = await axios.post(
       `${BASE_URL}/student/bookings`,
       { eventId },
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to book event"
+        "Failed to book event",
     );
   }
 };
@@ -109,14 +110,14 @@ export const cancelBooking = async (bookingId) => {
   try {
     const response = await axios.delete(
       `${BASE_URL}/student/bookings/${bookingId}`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to cancel booking"
+        "Failed to cancel booking",
     );
   }
 };

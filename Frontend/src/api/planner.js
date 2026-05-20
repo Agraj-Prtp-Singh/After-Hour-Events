@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
-const BASE_URL = "http://localhost:5000/api/v1";
+const BASE_URL = API_BASE_URL;
 
 const getAuthHeaders = () => {
   const token =
@@ -23,14 +24,14 @@ export const getPlannerStats = async () => {
   try {
     const response = await axios.get(
       `${BASE_URL}/planner/stats`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch planner stats"
+        "Failed to fetch planner stats",
     );
   }
 };
@@ -40,14 +41,14 @@ export const getPlannerEvents = async () => {
   try {
     const response = await axios.get(
       `${BASE_URL}/planner/events`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch planner events"
+        "Failed to fetch planner events",
     );
   }
 };
@@ -58,14 +59,14 @@ export const createEvent = async (eventData) => {
     const response = await axios.post(
       `${BASE_URL}/planner/events`,
       eventData,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to create event"
+        "Failed to create event",
     );
   }
 };
@@ -76,14 +77,14 @@ export const updateEvent = async (eventId, eventData) => {
     const response = await axios.put(
       `${BASE_URL}/planner/events/${eventId}`,
       eventData,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to update event"
+        "Failed to update event",
     );
   }
 };
@@ -93,14 +94,14 @@ export const deleteEvent = async (eventId) => {
   try {
     const response = await axios.delete(
       `${BASE_URL}/planner/events/${eventId}`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to delete event"
+        "Failed to delete event",
     );
   }
 };
@@ -110,14 +111,14 @@ export const getEventAttendees = async (eventId) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/planner/events/${eventId}/attendees`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch attendees"
+        "Failed to fetch attendees",
     );
   }
 };
@@ -127,14 +128,14 @@ export const getAllAttendees = async () => {
   try {
     const response = await axios.get(
       `${BASE_URL}/planner/attendees`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch attendees"
+        "Failed to fetch attendees",
     );
   }
 };
@@ -144,14 +145,14 @@ export const checkInAttendee = async (qrPayload) => {
     const response = await axios.post(
       `${BASE_URL}/planner/scanner/check-in`,
       { qrPayload },
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to check in attendee"
+        "Failed to check in attendee",
     );
   }
 };
@@ -161,14 +162,14 @@ export const getVendorApplications = async (status) => {
     const query = status ? `?status=${encodeURIComponent(status)}` : "";
     const response = await axios.get(
       `${BASE_URL}/planner/vendor-applications${query}`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch vendor applications"
+        "Failed to fetch vendor applications",
     );
   }
 };
@@ -178,14 +179,14 @@ export const reviewVendorApplication = async (applicationId, decision) => {
     const response = await axios.patch(
       `${BASE_URL}/planner/vendor-applications/${applicationId}/review`,
       { decision },
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to review vendor application"
+        "Failed to review vendor application",
     );
   }
 };

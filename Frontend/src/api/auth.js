@@ -1,11 +1,13 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
-const BASE_URL = "http://localhost:5000/api/v1";
+const BASE_URL = API_BASE_URL;
 const AUTH_URL = `${BASE_URL}/auth`;
 
 const unwrapResponse = (response) => response.data?.data ?? response.data;
 const getAuthConfig = () => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
   return {
     headers: {
@@ -25,7 +27,7 @@ const getApiErrorMessage = (error, fallbackMessage) => {
   }
 
   if (error.request) {
-    return "Backend server is not reachable on http://localhost:5000.";
+    return `Backend server is not reachable on ${API_BASE_URL}.`;
   }
 
   return fallbackMessage;

@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 import { getStoredToken } from "../utils/auth";
 
-const BASE_URL = "http://localhost:5000/api/v1";
+const BASE_URL = API_BASE_URL;
 
 const getAuthHeaders = () => {
   const token = getStoredToken();
@@ -30,7 +31,7 @@ export const getAdminEvents = async (params = {}) => {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to fetch events"
+        "Failed to fetch events",
     );
   }
 };
@@ -40,19 +41,23 @@ export const updateAdminEvent = async (eventId, eventData) => {
     const response = await axios.patch(
       `${BASE_URL}/events/${eventId}`,
       eventData,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to update event"
+        "Failed to update event",
     );
   }
 };
 
-export const reviewAdminEvent = async (eventId, decision, denialReason = "") => {
+export const reviewAdminEvent = async (
+  eventId,
+  decision,
+  denialReason = "",
+) => {
   try {
     const response = await axios.patch(
       `${BASE_URL}/events/${eventId}/review`,
@@ -60,14 +65,14 @@ export const reviewAdminEvent = async (eventId, decision, denialReason = "") => 
         decision,
         ...(denialReason ? { denialReason } : {}),
       },
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to review event"
+        "Failed to review event",
     );
   }
 };
@@ -76,14 +81,14 @@ export const deleteAdminEvent = async (eventId) => {
   try {
     const response = await axios.delete(
       `${BASE_URL}/events/${eventId}`,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
     return normalizeResponse(response);
   } catch (error) {
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to delete event"
+        "Failed to delete event",
     );
   }
 };
