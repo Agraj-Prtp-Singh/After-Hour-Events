@@ -79,6 +79,7 @@ class ChatbotService {
   askWithFallback(question, history = [], userRole) {
     const q = question.toLowerCase();
     const normalizedQuestion = q.replace(/[^\w\s]/g, '').trim();
+    const useNepali = this.#detectLanguage(question, normalizedQuestion) === 'ne';
     const lastAssistantReply = String(
       history
         .slice()
@@ -107,11 +108,34 @@ class ChatbotService {
     }
 
     if (this.#hasAny(q, ['help', 'what can you do', 'what do you do'])) {
-      return 'I can help you book events, find tickets, reset your password, understand event approval, or apply as a vendor. You can type your question or tap one of the quick questions below.';
+      return this.#say(
+        'I can help you book events, find tickets, reset your password, understand event approval, or apply as a vendor. You can type your question or tap one of the quick questions below.',
+        'म तपाईंलाई इभेन्ट बुक, टिकट खोज्ने, पासवर्ड रिसेट, approval flow बुझ्ने, र vendor apply गर्न सहयोग गर्न सक्छु।',
+        useNepali
+      );
     }
 
-    if (this.#hasAny(q, ['forgot', 'reset password', 'password reset'])) {
-      return 'No worries, you can reset your password with a 6-digit OTP. Enter your email on the forgot-password screen, check your inbox for the OTP, then use that code with your new password.';
+    if (
+      this.#isPasswordResetIntent(normalizedQuestion) ||
+      this.#containsNepaliWord(question, ['पासवर्ड', 'रिसेट', 'ओटिपी', 'OTP'])
+    ) {
+      const wantsLocation =
+        this.#hasAny(normalizedQuestion, ['where', 'from where', 'kaha', 'kata']) ||
+        this.#containsNepaliWord(question, ['कहाँ', 'कहा']);
+
+      if (wantsLocation) {
+        return this.#say(
+          'From the login page, click "Forgot password". Enter your email and submit. Check your inbox for the 6-digit OTP, then open reset password and submit OTP with your new password.',
+          'Login page बाट "Forgot password" खोल्नुहोस्। Email हालेर submit गर्नुहोस्। Inbox मा आएको ६-अङ्क OTP लिएर reset password मा OTP र नयाँ password हाल्नुहोस्।',
+          useNepali
+        );
+      }
+
+      return this.#say(
+        'No worries, you can reset your password with a 6-digit OTP. Enter your email on the forgot-password screen, check your inbox for the OTP, then use that code with your new password.',
+        'चिन्ता नलिनुहोस्। ६-अङ्क OTP प्रयोग गरेर पासवर्ड रिसेट गर्न सकिन्छ। Forgot-password मा email हाल्नुहोस्, inbox बाट OTP लिनुहोस्, अनि नयाँ password सहित reset गर्नुहोस्।',
+        useNepali
+      );
     }
 
     if (
@@ -152,7 +176,19 @@ class ChatbotService {
     }
 
     if (this.#hasAny(q, ['ticket', 'qr', 'scan'])) {
-      return 'After a student registers, their ticket shows up in their registrations with a QR code. At the entrance, that QR can be scanned to confirm the ticket and show the event details.';
+      if (this.#hasAny(normalizedQuestion, ['where', 'find', 'show']) || this.#containsNepaliWord(question, ['कहाँ', 'कहा', 'कसरी'])) {
+        return this.#say(
+          'Open your student dashboard, go to My Registrations/Bookings, then open the event to see your QR ticket.',
+          'Student dashboard मा गएर My Registrations/Bookings खोल्नुहोस्। इभेन्ट खोलेपछि QR ticket देखिन्छ।',
+          useNepali
+        );
+      }
+
+      return this.#say(
+        'After a student registers, their ticket shows up in their registrations with a QR code. At the entrance, that QR can be scanned to confirm the ticket and show the event details.',
+        'विद्यार्थीले register गरेपछि My Registrations मा QR ticket देखिन्छ। प्रवेशमा त्यो QR scan गरेर ticket verify गरिन्छ।',
+        useNepali
+      );
     }
 
     if (q.includes('event')) {
@@ -185,7 +221,19 @@ class ChatbotService {
       return 'Vendors can browse published events and apply for a stall or service spot. After applying, they can track their application status while the event planner reviews it.';
     }
 
-    return 'I can help with that. Could you tell me a little more about what you are trying to do: book an event, find a ticket, reset your password, create an event, or apply as a vendor?';
+    if (this.#hasAny(lastAssistantReply, ['could you tell me a little more', 'i can help with that'])) {
+      return this.#say(
+        'I want to make this easier. Tell me your goal in one line, like "reset my password", "book event", or "find my QR ticket", and I will give you exact steps.',
+        'सजिलो बनाऔं। एक लाइनमा लक्ष्य लेख्नुहोस्, जस्तै "password reset", "event book", वा "QR ticket find", अनि म ठ्याक्कै steps दिन्छु।',
+        useNepali
+      );
+    }
+
+    return this.#say(
+      'I can help with that. Could you tell me a little more about what you are trying to do: book an event, find a ticket, reset your password, create an event, or apply as a vendor?',
+      'म सहयोग गर्न सक्छु। तपाईं के गर्न खोज्दै हुनुहुन्छ: इभेन्ट बुक, टिकट खोज्ने, पासवर्ड रिसेट, इभेन्ट बनाउने, कि vendor apply?',
+      useNepali
+    );
   }
 
   askWithGemini(question, history = [], userRole) {
@@ -272,6 +320,32 @@ class ChatbotService {
 
   #hasAny(value, keywords) {
     return keywords.some((keyword) => value.includes(keyword));
+  }
+
+  #hasAllWords(value, words) {
+    return words.every((word) => value.includes(word));
+  }
+
+  #say(english, nepali, useNepali) {
+    return useNepali ? nepali : english;
+  }
+
+  #detectLanguage(rawValue, normalizedValue) {
+    if (/[\u0900-\u097F]/.test(rawValue)) return 'ne';
+    if (this.#hasAny(normalizedValue, ['kaha', 'kata', 'kasari', 'mero', 'ma'])) return 'ne';
+    return 'en';
+  }
+
+  #containsNepaliWord(rawValue, words) {
+    return words.some((word) => rawValue.includes(word));
+  }
+
+  #isPasswordResetIntent(value) {
+    if (this.#hasAny(value, ['forgot password', 'password reset'])) return true;
+
+    const resetLike = this.#hasAny(value, ['reset', 'change', 'forgot', 'recover', 'otp']);
+    const hasPassword = value.includes('password');
+    return resetLike && hasPassword;
   }
 
   #isDeveloperQuestion(value) {

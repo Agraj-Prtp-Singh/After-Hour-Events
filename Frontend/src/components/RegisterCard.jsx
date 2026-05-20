@@ -195,7 +195,6 @@ export default function RegisterCard() {
               </option>
               <option value="student">Student</option>
               <option value="event_planner">Event Planner</option>
-              <option value="admin">Admin</option>
               <option value="vendor">Vendor</option>
             </select>
           </div>
@@ -227,12 +226,12 @@ export default function RegisterCard() {
 
           <p className="text-center text-sm">
             Already have an account?{" "}
-<span 
-  className="text-blue-500 font-bold cursor-pointer hover:underline"
-  onClick={() => navigate("/login")}
->
-  Login
-</span>
+            <span
+              className="text-blue-500 font-bold cursor-pointer hover:underline"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </span>
           </p>
         </div>
       </form>
